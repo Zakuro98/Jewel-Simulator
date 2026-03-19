@@ -1,0 +1,244 @@
+body {
+    background-color: black;
+    font-family: "Fira Code";
+    font-size: 16px;
+    display: flex;
+    margin: 0;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+}
+
+@media (max-width: 768px) {
+    body {
+        font-size: 11px;
+    }
+}
+
+main {
+    width: 32em;
+    position: relative;
+}
+
+#gem_grid {
+    width: 32em;
+    height: 32em;
+    display: flex;
+    flex-wrap: wrap;
+    position: relative;
+}
+
+.grid_tile {
+    width: 4em;
+    height: 4em;
+    flex: none;
+}
+
+.even {
+    background-color: #111;
+}
+
+.odd {
+    background-color: #222;
+}
+
+.gem {
+    width: 4em;
+    height: 4em;
+    position: absolute;
+    z-index: 1;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+}
+
+.gem_overlay {
+    width: 4em;
+    height: 4em;
+    position: absolute;
+    z-index: 1;
+    background-size: 100% 100%;
+    image-rendering: pixelated;
+}
+
+.red_counter {
+    filter: brightness(0) saturate(100%) invert(19%) sepia(78%) saturate(3731%) hue-rotate(346deg) brightness(126%) contrast(116%);
+}
+
+.orange_counter {
+    filter: brightness(0) saturate(100%) invert(50%) sepia(97%) saturate(1530%) hue-rotate(348deg) brightness(101%) contrast(101%);
+}
+
+.yellow_counter {
+    filter: brightness(0) saturate(100%) invert(77%) sepia(43%) saturate(873%) hue-rotate(348deg) brightness(102%) contrast(101%);
+}
+
+.green_counter {
+    filter: brightness(0) saturate(100%) invert(79%) sepia(89%) saturate(1152%) hue-rotate(42deg) brightness(95%) contrast(113%);
+}
+
+.blue_counter {
+    filter: brightness(0) saturate(100%) invert(47%) sepia(88%) saturate(1272%) hue-rotate(178deg) brightness(102%) contrast(105%);
+}
+
+.purple_counter {
+    filter: brightness(0) saturate(100%) invert(32%) sepia(83%) saturate(5997%) hue-rotate(285deg) brightness(108%) contrast(114%);
+}
+
+.status_idle {
+    cursor: grab;
+}
+
+.status_drag {
+    cursor: grabbing;
+}
+
+.status_other {
+    cursor: default;
+}
+
+.locked {
+    cursor: default;
+}
+
+#level {
+    font-size: 1.5em;
+    color: white;
+    width: calc(32em / 1.5);
+    text-align: center;
+    margin-top: 0.25em;
+    margin-bottom: 0em;
+}
+
+#level_progress {
+    background-color: white;
+    width: 0em;
+    height: 2em;
+    position: absolute;
+    left: 0em;
+    top: 0.375em;
+    mix-blend-mode: difference;
+    transition: width 0.66s cubic-bezier(0, 0.44, 0.24, 1);
+}
+
+#score {
+    font-size: 4em;
+    font-weight: bold;
+    color: white;
+    width: 8em;
+    text-align: center;
+    margin-top: 0em;
+    margin-bottom: 0em;
+}
+
+#cascades {
+    font-size: 1.5em;
+    color: white;
+    width: calc(32em / 1.5);
+    text-align: center;
+    margin-top: 0em;
+    margin-bottom: 0.25em;
+}
+
+#boost {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: white;
+    width: 12.8em;
+    text-align: center;
+    margin-top: 0.25em;
+    margin-bottom: 0em;
+}
+
+#boost_progress {
+    width: 32em;
+    height: 2em;
+    display: flex;
+    gap: 0.25em;
+    justify-content: center;
+}
+
+.boost_cell {
+    width: 2em;
+    height: 2em;
+}
+
+.filled {
+    background-color: white;
+}
+
+.unfilled {
+    background-color: #444;
+}
+
+#lives {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: hsl(0, 70%, 50%);
+    width: 12.8em;
+    text-align: center;
+    margin-top: 1em;
+    margin-bottom: 0em;
+}
+
+.score_popup {
+    font-size: 2em;
+    text-align: center;
+    position: absolute;
+    z-index: 2;
+    transform: translate(-50%, -50%);
+}
+
+#level_end {
+    display: none;
+    font-size: 4em;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    position: absolute;
+    margin: 0em;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    transform: translate(-50%, -50%);
+}
+
+#highscore_panel {
+    display: none;
+}
+
+#highscore_title {
+    font-size: 4em;
+    font-weight: bold;
+    color: white;
+    width: 8em;
+    text-align: center;
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+#highscores {
+    font-size: 1.5em;
+    color: white;
+    width: calc(32em / 1.5);
+    text-align: center;
+    margin-top: 0em;
+    margin-bottom: 2em;
+}
+
+.your_score {
+    color: #ffc519;
+}
+
+.center_button {
+    display: flex;
+    justify-content: center;
+}
+
+#new_game {
+    font-family: "Fira Code";
+    font-size: 2em;
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    cursor: pointer;
+}

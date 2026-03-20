@@ -727,6 +727,7 @@ function match_check() {
 
             if (g.type === 8) {
                 g.color = 7
+                game.grid[g.x][g.y] = 7
                 g.type = 5
                 if (game.level >= 17) g.timer = 7
                 else if (game.level === 16) g.timer = 8

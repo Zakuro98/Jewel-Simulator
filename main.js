@@ -25,8 +25,8 @@ let game = {
     next_black: 1 + Math.floor(Math.random() * 105),
     black_count: 0,
     black_popped: 0,
-    next_bomb: 12,
-    next_lock: 15,
+    next_bomb: 8,
+    next_lock: 10,
     doom_goal: 400 + Math.floor(Math.random() * 801),
     doom_spawned: false,
     doom_spawning: false,
@@ -1355,14 +1355,20 @@ function level_up() {
     let min = Math.min(16, 35 - game.level)
     game.next_black = 1 + Math.floor(Math.random() * min * 3)
     game.black_count = 0
+    const bomb_min = [
+        4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+    ]
     const bomb_max = [
         12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
     ]
-    game.next_bomb = bomb_max[Math.min(game.level, 21) - 2]
+    game.next_bomb = Math.max(Math.floor((bomb_min[Math.min(game.level, 21) - 2] + bomb_max[Math.min(game.level, 21) - 2]) / 2), 3)
+    const lock_min = [
+        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1,
+    ]
     const lock_max = [
         15, 14, 13, 12, 11, 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5,
     ]
-    game.next_lock = lock_max[Math.min(game.level, 21) - 4]
+    game.next_lock = Math.max(Math.floor((lock_min[Math.min(game.level, 21) - 4] + lock_max[Math.min(game.level, 21) - 4]) / 2), 5)
     game.doom_goal =
         game.level_goal * 0.2 +
         Math.floor(Math.random() * game.level_goal * 0.4 + 1)
@@ -1541,8 +1547,8 @@ function new_game() {
         next_black: 1 + Math.floor(Math.random() * 105),
         black_count: 0,
         black_popped: 0,
-        next_bomb: 12,
-        next_lock: 15,
+        next_bomb: 8,
+        next_lock: 10,
         doom_goal: 400 + Math.floor(Math.random() * 801),
         doom_spawned: false,
         doom_spawning: false,

@@ -479,6 +479,9 @@ function remove_gem(g, destruction) {
                 game.boost_progress -= game.boost_goal
                 game.boost++
                 game.boost_goal = game.boost * 4
+                if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
+                else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
+                else document.getElementById("boost_progress").style.gap = "0.25em"
 
                 for (let i = 1; i <= 4; i++) {
                     cell = document.createElement("DIV")
@@ -1056,6 +1059,9 @@ function match_check() {
                 game.boost_progress -= game.boost_goal
                 game.boost++
                 game.boost_goal = game.boost * 4
+                if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
+                else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
+                else document.getElementById("boost_progress").style.gap = "0.25em"
 
                 for (let i = 1; i <= 4; i++) {
                     cell = document.createElement("DIV")
@@ -1126,6 +1132,9 @@ function match_check() {
                                     game.boost_goal = game.boost * 4
                                 } else break
                             }
+                            if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
+                            else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
+                            else document.getElementById("boost_progress").style.gap = "0.25em"
                             document.getElementById("boost").innerHTML =
                                 "x" + format_num(game.boost)
                             for (const h of gem.list) {
@@ -1205,6 +1214,9 @@ function match_check() {
                         }
                     }
                     game.boost_goal = game.boost * 4
+                    if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
+                    else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
+                    else document.getElementById("boost_progress").style.gap = "0.25em"
                 }
 
                 document.getElementById("boost").innerHTML =
@@ -1486,9 +1498,22 @@ function load_highscores() {
         "jewel_simulator_highscores",
         JSON.stringify(highscores),
     )
+
+    document.getElementById("level_progress").style.width =
+        0 + "em"
 }
 
 function new_game() {
+    if (game.boost >= 2) {
+        for (let i = 5; i <= game.boost_goal; i++) {
+            document
+                .getElementById(
+                    "cell" + (i + game.boost * 4),
+                )
+                    .remove()
+        }
+    }
+    
     game = {
         tickspeed: 3,
         status: "idle",
@@ -1532,6 +1557,14 @@ function new_game() {
     document.getElementById("game_panel").style.display = "block"
     document.getElementById("highscore_panel").style.display = "none"
     document.getElementById("level_end").style.display = "none"
+
+    document.getElementById("level").innerHTML =
+        "LEVEL " + format_num(game.level)
+    document.getElementById("lives").innerHTML = "❤❤❤"
+    for (let i = 1; i <= game.boost_goal; i++) {
+        document.getElementById("cell" + i).className =
+            "boost_cell unfilled"
+    }
 
     initialize_board()
 }

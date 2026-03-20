@@ -53,7 +53,7 @@ function format_num(num) {
         }
     }
 
-    if (num >= 1e21) {
+    if (num >= 2 ** 53) {
         output = "Infinity"
     }
     if (negative) {
@@ -94,7 +94,7 @@ class gem {
         }
         if (type !== undefined) this.type = type
         else this.type = 0
-        if (this.type === 5) this.timer = Math.max(22 - game.level, 7)
+        if (this.type === 5) this.timer = Math.max(22 - game.level, 5)
 
         game.grid[x][y] = this.color
 
@@ -339,7 +339,7 @@ function remove_gem(g, destruction) {
                     destruction.score += 500
                     break
                 case 5:
-                    destruction.score += 110 + timer * 10
+                    destruction.score += 100
                     break
                 case 7:
                     destruction.score += 50
@@ -359,7 +359,7 @@ function remove_gem(g, destruction) {
                     break
                 case 5:
                     if (color === 7) score += 1000 + timer * 100
-                    else score += 220 + timer * 20
+                    else score += 200
                     break
                 case 7:
                     score += 100
@@ -428,7 +428,7 @@ function remove_gem(g, destruction) {
             ]
 
             game.new_score += score * game.boost
-            if (game.new_score > 1e21) game.new_score = 1e21
+            if (game.new_score > 2 ** 53) game.new_score = 2 ** 53
 
             score_popup(x, y, score * game.boost, colors[color])
 
@@ -450,7 +450,7 @@ function remove_gem(g, destruction) {
         let score = Math.min(500 + 500 * game.black_popped, 4000)
 
         game.new_score += score * game.boost
-        if (game.new_score > 1e21) game.new_score = 1e21
+        if (game.new_score > 2 ** 53) game.new_score = 2 ** 53
 
         score_popup(x, y, score * game.boost, null)
 
@@ -725,7 +725,9 @@ function match_check() {
             if (g.type === 8) {
                 g.color = 7
                 g.type = 5
-                if (game.level >= 15) g.timer = 9
+                if (game.level >= 17) g.timer = 7
+                else if (game.level === 16) g.timer = 8
+                else if (game.level === 15) g.timer = 9
                 else if (game.level === 14) g.timer = 10
                 else g.timer = 13
                 g.element.style.backgroundImage = "url('sprites/doom_gem.png')"
@@ -947,7 +949,7 @@ function match_check() {
             else if (count === 2) score *= 2
 
             game.new_score += score * game.boost
-            if (game.new_score > 1e21) game.new_score = 1e21
+            if (game.new_score > 2 ** 53) game.new_score = 2 ** 53
 
             if (match[2]) {
                 score_popup(
@@ -1028,7 +1030,7 @@ function match_check() {
             score = Math.round((score * 1.5) / 10) * 10
 
             game.new_score += score * game.boost
-            if (game.new_score > 1e21) game.new_score = 1e21
+            if (game.new_score > 2 ** 53) game.new_score = 2 ** 53
 
             score_popup(
                 match.point[0],
@@ -1269,7 +1271,7 @@ function cascade() {
             4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
         ]
         const bomb_max = [
-            12, 11, 10, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4,
+            12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
         ]
         game.next_bomb =
             bomb_min[Math.min(game.level, 21) - 2] +
@@ -1333,7 +1335,8 @@ function animate_score() {
 function level_up() {
     game.level++
     game.level_progress = 0
-    game.level_goal = 1450 + 500 * game.level + 50 * game.level ** 2
+    if (game.level < 13) game.level_goal = 1450 + 500 * game.level + 50 * game.level ** 2
+    else game.level_goal = game.level * 1750 - 6350
     document.getElementById("level_progress").style.width =
         32 * (game.level_progress / game.level_goal) + "em"
 
@@ -1341,7 +1344,7 @@ function level_up() {
     game.next_black = 1 + Math.floor(Math.random() * min * 3)
     game.black_count = 0
     const bomb_max = [
-        12, 11, 10, 9, 9, 8, 8, 8, 7, 7, 7, 6, 6, 6, 6, 5, 5, 5, 5, 4,
+        12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
     ]
     game.next_bomb = bomb_max[Math.min(game.level, 21) - 2]
     const lock_max = [
@@ -1477,6 +1480,7 @@ function load_highscores() {
         str += " - " + format_num(highscores[i][1])
         if (placement === i) str += "</span>"
     }
+    document.getElementById("highscores").innerHTML = str
 
     localStorage.setItem(
         "jewel_simulator_highscores",

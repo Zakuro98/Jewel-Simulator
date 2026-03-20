@@ -775,7 +775,7 @@ function match_check() {
                 game.level >= 13 &&
                 game.level_progress >= game.doom_goal &&
                 !game.doom_spawned &&
-                !game.bad_block
+                !game.bad_block && game.bad_count < max_bad
             ) {
                 game.doom_spawned = true
                 game.doom_spawning = true
@@ -802,7 +802,7 @@ function match_check() {
                 game.next_bomb--
             }
 
-            if (game.level >= 4 && game.bad_count < max_bad) {
+            if (game.level >= 4 && game.bad_count < max_bad - 2) {
                 game.next_lock--
                 if (
                     game.next_lock <= 0 &&

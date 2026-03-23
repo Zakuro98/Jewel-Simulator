@@ -1037,7 +1037,7 @@ function match_check() {
                                 document.getElementById("cell" + i).className =
                                     "boost_cell unfilled"
                             }
-                            for (let i = 0; i < 3; i++) {
+                            for (let i = 0; i < 2; i++) {
                                 if (game.boost > 1) {
                                     game.boost--
                                     for (let i = 1; i <= 4; i++) {

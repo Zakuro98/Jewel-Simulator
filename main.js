@@ -1301,7 +1301,7 @@ function match_check() {
             ) {
                 let plain_gems = []
                 for (const g of gem.list) {
-                    if (g.type === 0) plain_gems.push(g)
+                    if (g.type === 0 && g.color < 7) plain_gems.push(g)
                 }
                 if (plain_gems.length > 0) {
                     game.doom_spawned = true
@@ -1373,7 +1373,7 @@ function match_check() {
 
                     let plain_gems = []
                     for (const g of gem.list) {
-                        if (g.type === 0) plain_gems.push(g)
+                        if (g.type === 0 && g.color < 7) plain_gems.push(g)
                     }
                     if (plain_gems.length > 0) {
                         let g =

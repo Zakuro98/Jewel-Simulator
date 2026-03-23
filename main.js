@@ -419,16 +419,14 @@ function remove_gem(g, destruction) {
                 }
                 break
             case 4:
-                if (destruction !== undefined) {
-                    for (const g of gem.list) {
-                        if (g.color === color) {
-                            if (destruction !== undefined) {
-                                destruction.score += 20
-                            } else {
-                                score += 20
-                            }
-                            remove_gem(g)
+                for (const g of gem.list) {
+                    if (g.color === color) {
+                        if (destruction !== undefined) {
+                            destruction.score += 20
+                        } else {
+                            score += 20
                         }
+                        remove_gem(g)
                     }
                 }
                 break

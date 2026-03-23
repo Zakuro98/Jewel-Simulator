@@ -205,15 +205,24 @@ main {
     transform: translate(-50%, -50%);
 }
 
-#highscore_panel {
+#game_panel {
     display: none;
 }
 
-#highscore_title {
+#game_title {
+    font-family: "Fira Sans";
     font-size: 4em;
     font-weight: bold;
     color: white;
-    width: 8em;
+    text-align: center;
+    margin-top: 0em;
+    margin-bottom: 0.5em;
+}
+
+#highscore_title {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: white;
     text-align: center;
     margin-top: 0em;
     margin-bottom: 0.5em;
@@ -235,13 +244,20 @@ main {
 .center_button {
     display: flex;
     justify-content: center;
+    gap: 1em;
 }
 
-#new_game {
+button {
     font-family: "Fira Code";
     font-size: 2em;
     background-color: black;
     color: white;
     border: 1px solid white;
     cursor: pointer;
+}
+
+.grey {
+    color: grey;
+    border: 1px solid grey;
+    cursor: default;
 }

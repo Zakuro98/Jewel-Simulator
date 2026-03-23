@@ -348,8 +348,13 @@ function remove_gem(g, destruction) {
                 case 5:
                     destruction.score += 100
                     break
+                case 6:
                 case 7:
                     destruction.score += 50
+                    break
+                case 8:
+                    destruction.score += 500
+                    game.doom_exists = false
                     break
             }
         } else {
@@ -370,8 +375,13 @@ function remove_gem(g, destruction) {
                         game.doom_exists = false
                     } else score += 200
                     break
+                case 6:
                 case 7:
                     score += 100
+                    break
+                case 8:
+                    score += 1000
+                    game.doom_exists = false
                     break
             }
         }
@@ -717,62 +727,6 @@ function find_matches() {
 function match_check() {
     if (game.cascades === 0) {
         document.getElementById("cascades").innerHTML = "&nbsp;"
-
-        for (const g of gem.list) {
-            if (g.type === 5 && g.color < 7) {
-                g.timer--
-                g.digits[0].style.backgroundImage =
-                    "url('sprites/bomb_timers/" +
-                    (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
-                    "0.png')"
-                g.digits[1].style.backgroundImage =
-                    "url('sprites/bomb_timers/" +
-                    (Math.max(g.timer, 0) % 10) +
-                    ".png')"
-            }
-
-            if (g.type === 6) {
-                g.type = 7
-                g.element.className = "gem locked"
-                let overlay = g.element.querySelector(".gem_overlay")
-                overlay.style.backgroundImage = "url('sprites/locked_gem.png')"
-            }
-
-            if (g.type === 8) {
-                g.color = 7
-                game.grid[g.x][g.y] = 7
-                g.type = 5
-                if (game.level >= 17) g.timer = 7
-                else if (game.level === 16) g.timer = 8
-                else if (game.level === 15) g.timer = 9
-                else if (game.level === 14) g.timer = 10
-                else g.timer = 13
-                g.element.style.backgroundImage = "url('sprites/doom_gem.png')"
-                g.element.className = "gem locked"
-                let overlay = g.element.querySelector(".gem_overlay")
-                overlay.remove()
-
-                let digit_t = document.createElement("DIV")
-                digit_t.className = "gem_overlay"
-                digit_t.style.backgroundImage =
-                    "url('sprites/doom_timers/" +
-                    (Math.floor(g.timer / 10) % 10) +
-                    "0.png')"
-                digit_t.style.left = 0 + "em"
-                digit_t.style.top = 0 + "em"
-                g.element.appendChild(digit_t)
-
-                let digit_u = document.createElement("DIV")
-                digit_u.className = "gem_overlay"
-                digit_u.style.backgroundImage =
-                    "url('sprites/doom_timers/" + (g.timer % 10) + ".png')"
-                digit_u.style.left = 0 + "em"
-                digit_u.style.top = 0 + "em"
-                g.element.appendChild(digit_u)
-
-                g.digits = [digit_t, digit_u]
-            }
-        }
     }
     if (match_exists()) {
         game.status = "match"
@@ -1317,6 +1271,64 @@ function match_check() {
                     document.getElementById("gem_grid").className =
                         "status_idle"
                 }
+            }
+        }
+    }
+
+    if (game.cascades <= 1) {
+        for (const g of gem.list) {
+            if (g.type === 5 && g.color < 7) {
+                g.timer--
+                g.digits[0].style.backgroundImage =
+                    "url('sprites/bomb_timers/" +
+                    (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
+                    "0.png')"
+                g.digits[1].style.backgroundImage =
+                    "url('sprites/bomb_timers/" +
+                    (Math.max(g.timer, 0) % 10) +
+                    ".png')"
+            }
+
+            if (g.type === 6) {
+                g.type = 7
+                g.element.className = "gem locked"
+                let overlay = g.element.querySelector(".gem_overlay")
+                overlay.style.backgroundImage = "url('sprites/locked_gem.png')"
+            }
+
+            if (g.type === 8) {
+                g.color = 7
+                game.grid[g.x][g.y] = 7
+                g.type = 5
+                if (game.level >= 17) g.timer = 7
+                else if (game.level === 16) g.timer = 8
+                else if (game.level === 15) g.timer = 9
+                else if (game.level === 14) g.timer = 10
+                else g.timer = 13
+                g.element.style.backgroundImage = "url('sprites/doom_gem.png')"
+                g.element.className = "gem locked"
+                let overlay = g.element.querySelector(".gem_overlay")
+                overlay.remove()
+
+                let digit_t = document.createElement("DIV")
+                digit_t.className = "gem_overlay"
+                digit_t.style.backgroundImage =
+                    "url('sprites/doom_timers/" +
+                    (Math.floor(g.timer / 10) % 10) +
+                    "0.png')"
+                digit_t.style.left = 0 + "em"
+                digit_t.style.top = 0 + "em"
+                g.element.appendChild(digit_t)
+
+                let digit_u = document.createElement("DIV")
+                digit_u.className = "gem_overlay"
+                digit_u.style.backgroundImage =
+                    "url('sprites/doom_timers/" + (g.timer % 10) + ".png')"
+                digit_u.style.left = 0 + "em"
+                digit_u.style.top = 0 + "em"
+                g.element.appendChild(digit_u)
+
+                g.digits = [digit_t, digit_u]
             }
         }
     }

@@ -1384,7 +1384,7 @@ function cascade() {
             max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
         let double_chance = 0
         if (game.level >= 13)
-            double_chance = Math.min((game.level - 12) / 26, 0.5)
+            double_chance = Math.min((game.level - 12) / 20, 0.5)
         let double_bomb = false
         if (Math.random() < double_chance && game.bad_count < max_bad - 1)
             double_bomb = true

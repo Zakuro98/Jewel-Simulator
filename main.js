@@ -727,6 +727,20 @@ function find_matches() {
 function match_check() {
     if (game.cascades === 0) {
         document.getElementById("cascades").innerHTML = "&nbsp;"
+
+        for (const g of gem.list) {
+            if (g.type === 5 && g.color < 7) {
+                g.timer--
+                g.digits[0].style.backgroundImage =
+                    "url('sprites/bomb_timers/" +
+                    (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
+                    "0.png')"
+                g.digits[1].style.backgroundImage =
+                    "url('sprites/bomb_timers/" +
+                    (Math.max(g.timer, 0) % 10) +
+                    ".png')"
+            }
+        }
     }
     if (match_exists()) {
         game.status = "match"
@@ -1277,18 +1291,6 @@ function match_check() {
 
     if (game.cascades <= 1) {
         for (const g of gem.list) {
-            if (g.type === 5 && g.color < 7) {
-                g.timer--
-                g.digits[0].style.backgroundImage =
-                    "url('sprites/bomb_timers/" +
-                    (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
-                    "0.png')"
-                g.digits[1].style.backgroundImage =
-                    "url('sprites/bomb_timers/" +
-                    (Math.max(g.timer, 0) % 10) +
-                    ".png')"
-            }
-
             if (g.type === 6) {
                 g.type = 7
                 g.element.className = "gem locked"

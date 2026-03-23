@@ -329,8 +329,8 @@ function remove_gem(g, destruction) {
     game.gems_destroyed++
 
     let old_score = game.new_score > game.score
-    if ((type >= 1 && type <= 5) || type === 7) {
-        game.specials[type - 1]--
+    if (type >= 1) {
+        if (type <= 4) game.specials[type - 1]--
         let score = 0
 
         if (destruction !== undefined) {
@@ -353,7 +353,7 @@ function remove_gem(g, destruction) {
                     destruction.score += 50
                     break
                 case 8:
-                    destruction.score += 500
+                    destruction.score += 1000
                     game.doom_exists = false
                     break
             }
@@ -725,6 +725,8 @@ function find_matches() {
 }
 
 function match_check() {
+    let first = true
+    if (game.status === "cascade") first = false
     if (game.cascades === 0) {
         document.getElementById("cascades").innerHTML = "&nbsp;"
 
@@ -745,94 +747,6 @@ function match_check() {
     if (match_exists()) {
         game.status = "match"
         document.getElementById("gem_grid").className = "status_other"
-
-        if (game.cascades === 0) {
-            let max_bad = 3
-            if (game.level >= 6)
-                max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
-
-            game.doom_spawning = false
-            if (
-                game.level >= 13 &&
-                game.level_progress >= game.doom_goal &&
-                !game.doom_spawned &&
-                !game.bad_block &&
-                game.bad_count < max_bad
-            ) {
-                game.doom_spawned = true
-                game.doom_spawning = true
-                game.doom_exists = true
-                let x = Math.floor(Math.random() * 8)
-                let y = Math.floor(Math.random() * 8)
-                let g = find_gem(x, y)
-                while (g.type !== 0 || g.color === 7) {
-                    x = Math.floor(Math.random() * 8)
-                    y = Math.floor(Math.random() * 8)
-                    g = find_gem(x, y)
-                }
-                g.type = 8
-                let overlay = document.createElement("DIV")
-                overlay.className = "gem_overlay"
-                overlay.style.backgroundImage =
-                    "url('sprites/locking_doom_gem.png')"
-                overlay.style.left = 0 + "em"
-                overlay.style.top = 0 + "em"
-                g.element.appendChild(overlay)
-                game.bad_count++
-            }
-
-            if (game.level >= 2 && game.bad_count < max_bad) {
-                game.next_bomb--
-            }
-
-            if (
-                game.level >= 4 &&
-                ((!game.doom_exists && game.bad_count < max_bad - 2) ||
-                    (game.doom_exists && game.bad_count < max_bad - 3))
-            ) {
-                game.next_lock--
-                if (
-                    game.next_lock <= 0 &&
-                    game.next_bomb > 0 &&
-                    !game.doom_spawning &&
-                    !game.bad_block
-                ) {
-                    const lock_min = [
-                        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1,
-                    ]
-                    const lock_max = [
-                        15, 14, 13, 12, 11, 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6,
-                        6, 5,
-                    ]
-                    game.next_lock =
-                        lock_min[Math.min(game.level, 21) - 4] +
-                        Math.floor(
-                            Math.random() *
-                                (lock_max[Math.min(game.level, 21) - 4] -
-                                    lock_min[Math.min(game.level, 21) - 4] +
-                                    1),
-                        )
-
-                    let x = Math.floor(Math.random() * 8)
-                    let y = Math.floor(Math.random() * 8)
-                    let g = find_gem(x, y)
-                    while (g.type !== 0 || g.color === 7) {
-                        x = Math.floor(Math.random() * 8)
-                        y = Math.floor(Math.random() * 8)
-                        g = find_gem(x, y)
-                    }
-                    g.type = 6
-                    let overlay = document.createElement("DIV")
-                    overlay.className = "gem_overlay"
-                    overlay.style.backgroundImage =
-                        "url('sprites/locking_gem.png')"
-                    overlay.style.left = 0 + "em"
-                    overlay.style.top = 0 + "em"
-                    g.element.appendChild(overlay)
-                    game.bad_count++
-                }
-            }
-        }
 
         let matches = find_matches()
 
@@ -893,7 +807,7 @@ function match_check() {
                 a.type - b.type
             })
             for (const g of gems) {
-                if ((g.type >= 1 && g.type <= 5) || g.type === 7) {
+                if (g.type >= 1) {
                     remove_gem(g, destruction)
                 } else {
                     remove_gem(g)
@@ -991,7 +905,7 @@ function match_check() {
                 a.type - b.type
             })
             for (const g of gems) {
-                if ((g.type >= 1 && g.type <= 5) || g.type === 7) {
+                if (g.type >= 1) {
                     remove_gem(g, destruction)
                 } else {
                     remove_gem(g)
@@ -1086,16 +1000,8 @@ function match_check() {
                         "boost_cell unfilled"
             }
         }
-        if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
-            let ticks = Array.from({ length: cascade_ticks() }, (_, i) => i + 1)
-            for (let i = ticks.length - 1; i > 0; i--) {
-                let j = Math.floor(Math.random() * (i + 1))
-                ;[ticks[i], ticks[j]] = [ticks[j], ticks[i]]
-            }
-            game.bomb_ticks = [ticks[0], ticks[1] ?? ticks[0]]
-        }
-        game.cascade_ticks = 0
 
+        game.cascade_ticks = 0
         window.setTimeout(cascade, 1000 / game.tickspeed)
     } else {
         let bomb_exploded = false
@@ -1289,7 +1195,7 @@ function match_check() {
         }
     }
 
-    if (game.cascades <= 1) {
+    if (first) {
         for (const g of gem.list) {
             if (g.type === 6) {
                 g.type = 7
@@ -1331,6 +1237,114 @@ function match_check() {
                 g.element.appendChild(digit_u)
 
                 g.digits = [digit_t, digit_u]
+            }
+        }
+
+        if (game.cascades >= 1) {
+            let max_bad = 3
+            if (game.level >= 6)
+                max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
+
+            game.doom_spawning = false
+            if (
+                game.level >= 13 &&
+                game.level_progress >= game.doom_goal &&
+                !game.doom_spawned &&
+                !game.bad_block &&
+                game.bad_count < max_bad
+            ) {
+                let plain_gems = []
+                for (const g of gem.list) {
+                    if (g.type === 0) plain_gems.push(g)
+                }
+                if (plain_gems.length > 0) {
+                    game.doom_spawned = true
+                    game.doom_spawning = true
+                    game.doom_exists = true
+                    let g =
+                        plain_gems[
+                            Math.floor(Math.random() * plain_gems.length)
+                        ]
+                    g.type = 8
+                    let overlay = document.createElement("DIV")
+                    overlay.className = "gem_overlay"
+                    overlay.style.backgroundImage =
+                        "url('sprites/locking_doom_gem.png')"
+                    overlay.style.left = 0 + "em"
+                    overlay.style.top = 0 + "em"
+                    g.element.appendChild(overlay)
+                    game.bad_count++
+                }
+            }
+
+            if (game.level >= 2 && game.bad_count < max_bad) {
+                game.next_bomb--
+
+                if (
+                    game.next_bomb <= 0 &&
+                    !game.doom_spawning &&
+                    !game.bad_block
+                ) {
+                    let ticks = Array.from(
+                        { length: cascade_ticks() },
+                        (_, i) => i + 1,
+                    )
+                    for (let i = ticks.length - 1; i > 0; i--) {
+                        let j = Math.floor(Math.random() * (i + 1))
+                        ;[ticks[i], ticks[j]] = [ticks[j], ticks[i]]
+                    }
+                    game.bomb_ticks = [ticks[0], ticks[1] ?? ticks[0]]
+                }
+            }
+
+            if (
+                game.level >= 4 &&
+                ((!game.doom_exists && game.bad_count < max_bad - 2) ||
+                    (game.doom_exists && game.bad_count < max_bad - 3))
+            ) {
+                game.next_lock--
+                if (
+                    game.next_lock <= 0 &&
+                    game.next_bomb > 0 &&
+                    !game.doom_spawning &&
+                    !game.bad_block
+                ) {
+                    const lock_min = [
+                        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1,
+                    ]
+                    const lock_max = [
+                        15, 14, 13, 12, 11, 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6,
+                        6, 5,
+                    ]
+                    game.next_lock =
+                        lock_min[Math.min(game.level, 21) - 4] +
+                        Math.floor(
+                            Math.random() *
+                                (lock_max[Math.min(game.level, 21) - 4] -
+                                    lock_min[Math.min(game.level, 21) - 4] +
+                                    1),
+                        )
+
+                    let plain_gems = []
+                    for (const g of gem.list) {
+                        if (g.type === 0) plain_gems.push(g)
+                    }
+                    if (plain_gems.length > 0) {
+                        let g =
+                            plain_gems[
+                                Math.floor(Math.random() * plain_gems.length)
+                            ]
+                        g.type = 6
+                        let overlay = document.createElement("DIV")
+                        overlay.className = "gem_overlay"
+                        overlay.style.backgroundImage =
+                            "url('sprites/locking_gem.png')"
+                        overlay.style.left = 0 + "em"
+                        overlay.style.top = 0 + "em"
+                        g.element.appendChild(overlay)
+                        game.bad_count++
+                    }
+                }
             }
         }
     }

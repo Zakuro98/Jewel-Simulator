@@ -18,6 +18,7 @@ let game = {
     new_score: 0,
     score_ticks: 0,
     cascades: 0,
+    cascade_ticks: 0,
     gems_destroyed: 0,
 
     grid: new Array(8),
@@ -26,10 +27,12 @@ let game = {
     black_count: 0,
     black_popped: 0,
     next_bomb: 8,
-    next_lock: 10,
+    bomb_ticks: [0, 0],
+    next_lock: 11,
     doom_goal: 400 + Math.floor(Math.random() * 801),
     doom_spawned: false,
     doom_spawning: false,
+    doom_exists: false,
     bad_count: 0,
     bad_block: false,
 }
@@ -127,6 +130,10 @@ class gem {
                 case 2:
                     overlay.style.backgroundImage =
                         "url('sprites/lightning_gem.png')"
+                    break
+                case 3:
+                    overlay.style.backgroundImage =
+                        "url('sprites/supernova_gem.png')"
                     break
                 case 4:
                     overlay.style.backgroundImage =
@@ -358,8 +365,10 @@ function remove_gem(g, destruction) {
                     score += 1000
                     break
                 case 5:
-                    if (color === 7) score += 1000 + timer * 100
-                    else score += 200
+                    if (color === 7) {
+                        score += 1000 + timer * 100
+                        game.doom_exists = false
+                    } else score += 200
                     break
                 case 7:
                     score += 100
@@ -369,24 +378,9 @@ function remove_gem(g, destruction) {
 
         switch (type) {
             case 1:
-                let tiles = [
-                    [1, 0],
-                    [1, -1],
-                    [0, -1],
-                    [-1, -1],
-                    [-1, 0],
-                    [-1, 1],
-                    [0, 1],
-                    [1, 1],
-                ]
-                for (let i = 0; i < 8; i++) {
-                    let xx = x + tiles[i][0]
-                    let yy = y + tiles[i][1]
-
-                    if (xx >= 0 && xx <= 7 && yy >= 0 && yy <= 7) {
-                        if (game.grid[xx][yy] !== null) {
-                            remove_gem(find_gem(xx, yy))
-                        }
+                for (const g of gem.list) {
+                    if (Math.abs(g.x - x) <= 1 && Math.abs(g.y - y) <= 1) {
+                        remove_gem(g)
                     }
                 }
                 break
@@ -402,15 +396,29 @@ function remove_gem(g, destruction) {
                     }
                 }
                 break
-            case 4:
+            case 3:
                 for (const g of gem.list) {
-                    if (g.color === color) {
+                    if (Math.abs(g.x - x) <= 1 || Math.abs(g.y - y) <= 1) {
                         if (destruction !== undefined) {
                             destruction.score += 20
                         } else {
                             score += 20
                         }
                         remove_gem(g)
+                    }
+                }
+                break
+            case 4:
+                if (destruction !== undefined) {
+                    for (const g of gem.list) {
+                        if (g.color === color) {
+                            if (destruction !== undefined) {
+                                destruction.score += 20
+                            } else {
+                                score += 20
+                            }
+                            remove_gem(g)
+                        }
                     }
                 }
                 break
@@ -479,9 +487,14 @@ function remove_gem(g, destruction) {
                 game.boost_progress -= game.boost_goal
                 game.boost++
                 game.boost_goal = game.boost * 4
-                if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
-                else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
-                else document.getElementById("boost_progress").style.gap = "0.25em"
+                if (game.boost >= 13)
+                    document.getElementById("boost_progress").style.gap = "0em"
+                else if (game.boost >= 7)
+                    document.getElementById("boost_progress").style.gap =
+                        "0.125em"
+                else
+                    document.getElementById("boost_progress").style.gap =
+                        "0.25em"
 
                 for (let i = 1; i <= 4; i++) {
                     cell = document.createElement("DIV")
@@ -775,10 +788,12 @@ function match_check() {
                 game.level >= 13 &&
                 game.level_progress >= game.doom_goal &&
                 !game.doom_spawned &&
-                !game.bad_block && game.bad_count < max_bad
+                !game.bad_block &&
+                game.bad_count < max_bad
             ) {
                 game.doom_spawned = true
                 game.doom_spawning = true
+                game.doom_exists = true
                 let x = Math.floor(Math.random() * 8)
                 let y = Math.floor(Math.random() * 8)
                 let g = find_gem(x, y)
@@ -802,7 +817,11 @@ function match_check() {
                 game.next_bomb--
             }
 
-            if (game.level >= 4 && game.bad_count < max_bad - 2) {
+            if (
+                game.level >= 4 &&
+                ((!game.doom_exists && game.bad_count < max_bad - 2) ||
+                    (game.doom_exists && game.bad_count < max_bad - 3))
+            ) {
                 game.next_lock--
                 if (
                     game.next_lock <= 0 &&
@@ -927,6 +946,13 @@ function match_check() {
                 } else {
                     new gem(match[0] + 2, match[1], match[4], 4)
                 }
+            } else if (match[3] >= 6) {
+                game.specials[2]++
+                if (match[2]) {
+                    new gem(match[0], match[1] + 3, match[4], 3)
+                } else {
+                    new gem(match[0] + 2, match[1], match[4], 3)
+                }
             }
 
             let score = 0
@@ -1004,8 +1030,13 @@ function match_check() {
                 }
             }
 
-            game.specials[1]++
-            new gem(match.point[0], match.point[1], match.h[4], 2)
+            if (match.h[3] + match.v[3] >= 8) {
+                game.specials[2]++
+                new gem(match.point[0], match.point[1], match.h[4], 3)
+            } else {
+                game.specials[1]++
+                new gem(match.point[0], match.point[1], match.h[4], 2)
+            }
 
             let score = 0
             if (match.h[3] >= 4) score += 100 * (match.h[3] - 3)
@@ -1060,9 +1091,14 @@ function match_check() {
                 game.boost_progress -= game.boost_goal
                 game.boost++
                 game.boost_goal = game.boost * 4
-                if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
-                else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
-                else document.getElementById("boost_progress").style.gap = "0.25em"
+                if (game.boost >= 13)
+                    document.getElementById("boost_progress").style.gap = "0em"
+                else if (game.boost >= 7)
+                    document.getElementById("boost_progress").style.gap =
+                        "0.125em"
+                else
+                    document.getElementById("boost_progress").style.gap =
+                        "0.25em"
 
                 for (let i = 1; i <= 4; i++) {
                     cell = document.createElement("DIV")
@@ -1082,6 +1118,15 @@ function match_check() {
                         "boost_cell unfilled"
             }
         }
+        if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
+            let ticks = Array.from({ length: cascade_ticks() }, (_, i) => i + 1)
+            for (let i = ticks.length - 1; i > 0; i--) {
+                let j = Math.floor(Math.random() * (i + 1))
+                ;[ticks[i], ticks[j]] = [ticks[j], ticks[i]]
+            }
+            game.bomb_ticks = [ticks[0], ticks[1] ?? ticks[0]]
+        }
+        game.cascade_ticks = 0
 
         window.setTimeout(cascade, 1000 / game.tickspeed)
     } else {
@@ -1133,9 +1178,18 @@ function match_check() {
                                     game.boost_goal = game.boost * 4
                                 } else break
                             }
-                            if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
-                            else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
-                            else document.getElementById("boost_progress").style.gap = "0.25em"
+                            if (game.boost >= 13)
+                                document.getElementById(
+                                    "boost_progress",
+                                ).style.gap = "0em"
+                            else if (game.boost >= 7)
+                                document.getElementById(
+                                    "boost_progress",
+                                ).style.gap = "0.125em"
+                            else
+                                document.getElementById(
+                                    "boost_progress",
+                                ).style.gap = "0.25em"
                             document.getElementById("boost").innerHTML =
                                 "x" + format_num(game.boost)
                             for (const h of gem.list) {
@@ -1215,9 +1269,15 @@ function match_check() {
                         }
                     }
                     game.boost_goal = game.boost * 4
-                    if (game.boost >= 13) document.getElementById("boost_progress").style.gap = "0em"
-                    else if (game.boost >= 7) document.getElementById("boost_progress").style.gap = "0.125em"
-                    else document.getElementById("boost_progress").style.gap = "0.25em"
+                    if (game.boost >= 13)
+                        document.getElementById("boost_progress").style.gap =
+                            "0em"
+                    else if (game.boost >= 7)
+                        document.getElementById("boost_progress").style.gap =
+                            "0.125em"
+                    else
+                        document.getElementById("boost_progress").style.gap =
+                            "0.25em"
                 }
 
                 document.getElementById("boost").innerHTML =
@@ -1262,9 +1322,22 @@ function match_check() {
     }
 }
 
+function cascade_ticks() {
+    let max = 0
+    for (let i = 0; i < 8; i++) {
+        let empty = 0
+        for (let j = 0; j < 8; j++) {
+            if (game.grid[i][j] === null) empty++
+        }
+        if (empty > max) max = empty
+    }
+    return max
+}
+
 function cascade() {
     game.status = "cascade"
     document.getElementById("gem_grid").className = "status_other"
+    game.cascade_ticks++
 
     for (let i = 0; i < 8; i++) {
         for (let j = 6; j >= 0; j--) {
@@ -1280,35 +1353,56 @@ function cascade() {
     }
 
     if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
-        const bomb_min = [
-            4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
-        ]
-        const bomb_max = [
-            12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
-        ]
-        game.next_bomb =
-            bomb_min[Math.min(game.level, 21) - 2] +
-            Math.floor(
-                Math.random() *
-                    (bomb_max[Math.min(game.level, 21) - 2] -
-                        bomb_min[Math.min(game.level, 21) - 2] +
-                        1),
-            )
+        let max_bad = 3
+        if (game.level >= 6)
+            max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
+        let double_chance = 0
+        if (game.level >= 13)
+            double_chance = Math.min((game.level - 12) / 26, 0.5)
+        let double_bomb = false
+        if (Math.random() < double_chance && game.bad_count < max_bad - 1)
+            double_bomb = true
 
-        let places = []
-        for (let i = 0; i < 8; i++) {
-            if (game.grid[i][0] === null) places.push(i)
-        }
-        for (let i = places.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1))
-            ;[places[i], places[j]] = [places[j], places[i]]
-        }
-        for (let i = 0; i < places.length; i++) {
-            if (i === 0) {
-                new gem(places[i], 0, Math.floor(Math.random() * 7), 5)
-                game.bad_count++
-            } else {
-                new gem(places[i], 0)
+        if (game.bomb_ticks[0] === game.bomb_ticks[1] && double_bomb) {
+            let places = []
+            for (let i = 0; i < 8; i++) {
+                if (game.grid[i][0] === null) places.push(i)
+            }
+            for (let i = places.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1))
+                ;[places[i], places[j]] = [places[j], places[i]]
+            }
+            for (let i = 0; i < places.length; i++) {
+                if (i <= 1) {
+                    new gem(places[i], 0, Math.floor(Math.random() * 7), 5)
+                    game.bad_count++
+                } else {
+                    new gem(places[i], 0)
+                }
+            }
+        } else if (
+            game.cascade_ticks === game.bomb_ticks[0] ||
+            (game.cascade_ticks === game.bomb_ticks[1] && double_bomb)
+        ) {
+            let places = []
+            for (let i = 0; i < 8; i++) {
+                if (game.grid[i][0] === null) places.push(i)
+            }
+            for (let i = places.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1))
+                ;[places[i], places[j]] = [places[j], places[i]]
+            }
+            for (let i = 0; i < places.length; i++) {
+                if (i === 0) {
+                    new gem(places[i], 0, Math.floor(Math.random() * 7), 5)
+                    game.bad_count++
+                } else {
+                    new gem(places[i], 0)
+                }
+            }
+        } else {
+            for (let i = 0; i < 8; i++) {
+                if (game.grid[i][0] === null) new gem(i, 0)
             }
         }
     } else {
@@ -1327,6 +1421,22 @@ function cascade() {
     if (empty > 0) {
         window.setTimeout(cascade, 1000 / game.tickspeed)
     } else {
+        if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
+            const bomb_min = [
+                4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+            ]
+            const bomb_max = [
+                12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
+            ]
+            game.next_bomb =
+                bomb_min[Math.min(game.level, 21) - 2] +
+                Math.floor(
+                    Math.random() *
+                        (bomb_max[Math.min(game.level, 21) - 2] -
+                            bomb_min[Math.min(game.level, 21) - 2] +
+                            1),
+                )
+        }
         window.setTimeout(match_check, 1000 / game.tickspeed)
     }
 }
@@ -1348,7 +1458,8 @@ function animate_score() {
 function level_up() {
     game.level++
     game.level_progress = 0
-    if (game.level < 13) game.level_goal = 1450 + 500 * game.level + 50 * game.level ** 2
+    if (game.level < 13)
+        game.level_goal = 1450 + 500 * game.level + 50 * game.level ** 2
     else game.level_goal = game.level * 1750 - 6350
     document.getElementById("level_progress").style.width =
         32 * (game.level_progress / game.level_goal) + "em"
@@ -1362,19 +1473,32 @@ function level_up() {
     const bomb_max = [
         12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
     ]
-    game.next_bomb = Math.max(Math.floor((bomb_min[Math.min(game.level, 21) - 2] + bomb_max[Math.min(game.level, 21) - 2]) / 2), 3)
-    const lock_min = [
-        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1,
-    ]
+    game.next_bomb = Math.max(
+        Math.floor(
+            (bomb_min[Math.min(game.level, 21) - 2] +
+                bomb_max[Math.min(game.level, 21) - 2]) /
+                2,
+        ),
+        5,
+    )
+    const lock_min = [7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1]
     const lock_max = [
-        15, 14, 13, 12, 11, 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5,
+        15, 14, 13, 12, 11, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4,
     ]
-    game.next_lock = Math.max(Math.floor((lock_min[Math.min(game.level, 21) - 4] + lock_max[Math.min(game.level, 21) - 4]) / 2), 5)
+    game.next_lock = Math.max(
+        Math.floor(
+            (lock_min[Math.min(game.level, 21) - 4] +
+                lock_max[Math.min(game.level, 21) - 4]) /
+                2,
+        ),
+        5,
+    )
     game.doom_goal =
         game.level_goal * 0.2 +
         Math.floor(Math.random() * game.level_goal * 0.4 + 1)
     game.doom_spawned = false
     game.doom_spawning = false
+    game.doom_exists = false
     game.bad_count = 0
     game.bad_block = false
 
@@ -1412,9 +1536,7 @@ function initialize_board() {
         }
     }
 
-    let fails = 0
     while (match_exists()) {
-        fails++
         clear_grid()
         for (let i = 0; i < 8; i++) {
             for (let j = 0; j < 8; j++) {
@@ -1422,8 +1544,6 @@ function initialize_board() {
             }
         }
     }
-
-    console.log(fails)
 
     for (let i = 0; i < 4; i++) {
         if (game.specials[i] >= 1) {
@@ -1449,6 +1569,10 @@ function initialize_board() {
                     case 1:
                         overlay.style.backgroundImage =
                             "url('sprites/lightning_gem.png')"
+                        break
+                    case 2:
+                        overlay.style.backgroundImage =
+                            "url('sprites/supernova_gem.png')"
                         break
                     case 3:
                         overlay.style.backgroundImage =
@@ -1506,21 +1630,16 @@ function load_highscores() {
         JSON.stringify(highscores),
     )
 
-    document.getElementById("level_progress").style.width =
-        0 + "em"
+    document.getElementById("level_progress").style.width = 0 + "em"
 }
 
 function new_game() {
     if (game.boost >= 2) {
         for (let i = 5; i <= game.boost_goal; i++) {
-            document
-                .getElementById(
-                    "cell" + (i + game.boost * 4),
-                )
-                    .remove()
+            document.getElementById("cell" + (i + game.boost * 4)).remove()
         }
     }
-    
+
     game = {
         tickspeed: 3,
         status: "idle",
@@ -1541,6 +1660,7 @@ function new_game() {
         new_score: 0,
         score_ticks: 0,
         cascades: 0,
+        cascade_ticks: 0,
         gems_destroyed: 0,
 
         grid: new Array(8),
@@ -1549,10 +1669,12 @@ function new_game() {
         black_count: 0,
         black_popped: 0,
         next_bomb: 8,
-        next_lock: 10,
+        bomb_ticks: [0, 0],
+        next_lock: 11,
         doom_goal: 400 + Math.floor(Math.random() * 801),
         doom_spawned: false,
         doom_spawning: false,
+        doom_exists: false,
         bad_count: 0,
         bad_block: false,
     }
@@ -1569,8 +1691,7 @@ function new_game() {
         "LEVEL " + format_num(game.level)
     document.getElementById("lives").innerHTML = "❤❤❤"
     for (let i = 1; i <= game.boost_goal; i++) {
-        document.getElementById("cell" + i).className =
-            "boost_cell unfilled"
+        document.getElementById("cell" + i).className = "boost_cell unfilled"
     }
 
     initialize_board()

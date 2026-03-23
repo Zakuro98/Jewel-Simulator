@@ -104,7 +104,9 @@ class gem {
         gem.list.push(this)
 
         let element = document.createElement("DIV")
-        element.className = "gem"
+        if (this.type === 7 || (this.type === 5 && this.color === 7))
+            element.className = "gem locked"
+        else element.className = "gem"
         const colors = [
             "red",
             "orange",
@@ -115,8 +117,11 @@ class gem {
             "white",
             "black",
         ]
-        element.style.backgroundImage =
-            "url('sprites/" + colors[this.color] + "_gem.png')"
+        if (this.type === 5 && this.color === 7)
+            element.style.backgroundImage = "url('sprites/doom_gem.png')"
+        else
+            element.style.backgroundImage =
+                "url('sprites/" + colors[this.color] + "_gem.png')"
         element.style.left = 4 * x + "em"
         element.style.top = 4 * y + "em"
         if (this.type >= 1) {
@@ -140,8 +145,21 @@ class gem {
                         "url('sprites/hypercube_gem.png')"
                     break
                 case 5:
+                    if (this.color < 7)
+                        overlay.style.backgroundImage =
+                            "url('sprites/bomb_gem.png')"
+                    break
+                case 6:
                     overlay.style.backgroundImage =
-                        "url('sprites/bomb_gem.png')"
+                        "url('sprites/locking_gem.png')"
+                    break
+                case 7:
+                    overlay.style.backgroundImage =
+                        "url('sprites/locked_gem.png')"
+                    break
+                case 8:
+                    overlay.style.backgroundImage =
+                        "url('sprites/locking_doom_gem.png')"
                     break
             }
             overlay.style.left = 0 + "em"
@@ -149,27 +167,53 @@ class gem {
             element.appendChild(overlay)
 
             if (this.type === 5) {
-                let digit_t = document.createElement("DIV")
-                digit_t.className =
-                    "gem_overlay " + colors[this.color] + "_counter"
-                digit_t.style.backgroundImage =
-                    "url('sprites/bomb_timers/" +
-                    (Math.floor(this.timer / 10) % 10) +
-                    "0.png')"
-                digit_t.style.left = 0 + "em"
-                digit_t.style.top = 0 + "em"
-                overlay.appendChild(digit_t)
+                if (this.color === 7) {
+                    let digit_t = document.createElement("DIV")
+                    digit_t.className = "gem_overlay"
+                    digit_t.style.backgroundImage =
+                        "url('sprites/doom_timers/" +
+                        (Math.floor(this.timer / 10) % 10) +
+                        "0.png')"
+                    digit_t.style.left = 0 + "em"
+                    digit_t.style.top = 0 + "em"
+                    overlay.appendChild(digit_t)
 
-                let digit_u = document.createElement("DIV")
-                digit_u.className =
-                    "gem_overlay " + colors[this.color] + "_counter"
-                digit_u.style.backgroundImage =
-                    "url('sprites/bomb_timers/" + (this.timer % 10) + ".png')"
-                digit_u.style.left = 0 + "em"
-                digit_u.style.top = 0 + "em"
-                overlay.appendChild(digit_u)
+                    let digit_u = document.createElement("DIV")
+                    digit_u.className = "gem_overlay"
+                    digit_u.style.backgroundImage =
+                        "url('sprites/doom_timers/" +
+                        (this.timer % 10) +
+                        ".png')"
+                    digit_u.style.left = 0 + "em"
+                    digit_u.style.top = 0 + "em"
+                    overlay.appendChild(digit_u)
 
-                this.digits = [digit_t, digit_u]
+                    this.digits = [digit_t, digit_u]
+                } else {
+                    let digit_t = document.createElement("DIV")
+                    digit_t.className =
+                        "gem_overlay " + colors[this.color] + "_counter"
+                    digit_t.style.backgroundImage =
+                        "url('sprites/bomb_timers/" +
+                        (Math.floor(this.timer / 10) % 10) +
+                        "0.png')"
+                    digit_t.style.left = 0 + "em"
+                    digit_t.style.top = 0 + "em"
+                    overlay.appendChild(digit_t)
+
+                    let digit_u = document.createElement("DIV")
+                    digit_u.className =
+                        "gem_overlay " + colors[this.color] + "_counter"
+                    digit_u.style.backgroundImage =
+                        "url('sprites/bomb_timers/" +
+                        (this.timer % 10) +
+                        ".png')"
+                    digit_u.style.left = 0 + "em"
+                    digit_u.style.top = 0 + "em"
+                    overlay.appendChild(digit_u)
+
+                    this.digits = [digit_t, digit_u]
+                }
             }
         }
         element.addEventListener("mousedown", e => {
@@ -1119,7 +1163,9 @@ function match_check() {
                 game.status = "gameover"
                 document.getElementById("gem_grid").className = "status_other"
 
-                window.setTimeout(load_highscores, 6000 / game.tickspeed)
+                localStorage.removeItem("jewel_simulator_save")
+
+                window.setTimeout(update_highscores, 6000 / game.tickspeed)
             }
         } else {
             if (game.cascades === 0) {
@@ -1173,6 +1219,7 @@ function match_check() {
 
                 game.status = "idle"
                 document.getElementById("gem_grid").className = "status_idle"
+                save_game()
             } else if (game.cascades >= 1) {
                 if (game.gems_destroyed >= 8) game.bad_block = true
                 else game.bad_block = false
@@ -1188,6 +1235,7 @@ function match_check() {
                     game.status = "idle"
                     document.getElementById("gem_grid").className =
                         "status_idle"
+                    save_game()
                 }
             }
         }
@@ -1540,6 +1588,7 @@ function level_up() {
             "LEVEL " + format_num(game.level)
         game.status = "idle"
         document.getElementById("gem_grid").className = "status_idle"
+        save_game()
     }, 6000 / game.tickspeed)
 }
 
@@ -1613,7 +1662,22 @@ function initialize_board() {
     }
 }
 
-initialize_board()
+function save_game() {
+    let gems = gem.list.map(g => ({
+        x: g.x,
+        y: g.y,
+        color: g.color,
+        type: g.type,
+        timer: g.timer,
+    }))
+
+    let save = {
+        game: game,
+        gems: gems,
+    }
+
+    localStorage.setItem("jewel_simulator_save", JSON.stringify(save))
+}
 
 let highscores = JSON.parse(localStorage.getItem("jewel_simulator_highscores"))
 if (highscores === null) {
@@ -1621,8 +1685,27 @@ if (highscores === null) {
 }
 
 function load_highscores() {
+    let str = ""
+    for (let i = 0; i < 10; i++) {
+        if (str !== "") str += "<br>"
+        str += "#" + (i + 1)
+        if (highscores[i][1] > 0) {
+            str += " - LEVEL " + format_num(highscores[i][0])
+            str += " - " + format_num(highscores[i][1])
+        } else {
+            str += " - No data"
+        }
+    }
+    document.getElementById("highscores").innerHTML = str
+
+    if (localStorage.getItem("jewel_simulator_save") !== null)
+        document.getElementById("continue_game").className = ""
+}
+
+function update_highscores() {
     document.getElementById("game_panel").style.display = "none"
     document.getElementById("highscore_panel").style.display = "block"
+    document.getElementById("continue_game").style.display = "none"
 
     let placement = 10
     for (let i = 9; i >= 0; i--) {
@@ -1645,8 +1728,12 @@ function load_highscores() {
         if (str !== "") str += "<br>"
         if (placement === i) str += '<span class="your_score">'
         str += "#" + (i + 1)
-        str += " - LEVEL " + format_num(highscores[i][0])
-        str += " - " + format_num(highscores[i][1])
+        if (highscores[i][1] > 0) {
+            str += " - LEVEL " + format_num(highscores[i][0])
+            str += " - " + format_num(highscores[i][1])
+        } else {
+            str += " - No data"
+        }
         if (placement === i) str += "</span>"
     }
     document.getElementById("highscores").innerHTML = str
@@ -1660,65 +1747,160 @@ function load_highscores() {
 }
 
 function new_game() {
-    if (game.boost >= 2) {
-        for (let i = 5; i <= game.boost_goal; i++) {
-            document.getElementById("cell" + (i + game.boost * 4)).remove()
+    let confirm = true
+    if (localStorage.getItem("jewel_simulator_save") !== null) {
+        if (
+            window.confirm(
+                "Are you sure you want to start a new game? Your current game will be lost!",
+            )
+        )
+            confirm = true
+        else confirm = false
+    }
+
+    if (confirm) {
+        if (game.boost >= 2) {
+            for (let i = 5; i <= game.boost_goal; i++) {
+                document.getElementById("cell" + (i + game.boost * 4)).remove()
+            }
+        }
+
+        game = {
+            tickspeed: 3,
+            status: "idle",
+            drag: [null, null],
+
+            level: 1,
+            level_goal: 2000,
+            level_progress: 0,
+
+            lives: 3,
+
+            boost: 1,
+            boost_goal: 4,
+            boost_progress: 0,
+
+            score: 0,
+            old_score: 0,
+            new_score: 0,
+            score_ticks: 0,
+            cascades: 0,
+            cascade_ticks: 0,
+            gems_destroyed: 0,
+
+            grid: new Array(8),
+            specials: [0, 0, 0, 0],
+            next_black: 1 + Math.floor(Math.random() * 105),
+            black_count: 0,
+            black_popped: 0,
+            next_bomb: 8,
+            bomb_ticks: [0, 0],
+            next_lock: 11,
+            doom_goal: 400 + Math.floor(Math.random() * 801),
+            doom_spawned: false,
+            doom_spawning: false,
+            doom_exists: false,
+            bad_count: 0,
+            bad_block: false,
+        }
+
+        for (let i = 0; i < 8; i++) {
+            game.grid[i] = new Array(8).fill(null)
+        }
+
+        document.getElementById("game_panel").style.display = "block"
+        document.getElementById("highscore_panel").style.display = "none"
+        document.getElementById("level_end").style.display = "none"
+
+        document.getElementById("level").innerHTML =
+            "LEVEL " + format_num(game.level)
+        document.getElementById("lives").innerHTML = "❤❤❤"
+        document.getElementById("boost").innerHTML =
+            "x" + format_num(game.boost)
+        document.getElementById("boost_progress").style.gap = "0.25em"
+        for (let i = 1; i <= game.boost_goal; i++) {
+            document.getElementById("cell" + i).className =
+                "boost_cell unfilled"
+        }
+
+        initialize_board()
+        localStorage.removeItem("jewel_simulator_save")
+    }
+}
+
+function continue_game() {
+    let save = JSON.parse(localStorage.getItem("jewel_simulator_save"))
+    if (save !== null) {
+        game = save.game
+        game.score = game.new_score
+        game.drag = [null, null]
+
+        for (const g of save.gems) {
+            let h = new gem(g.x, g.y, g.color, g.type)
+            if (g.timer !== undefined) {
+                h.timer = g.timer
+                if (h.color === 7) {
+                    h.digits[0].style.backgroundImage =
+                        "url('sprites/doom_timers/" +
+                        (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
+                        "0.png')"
+                    h.digits[1].style.backgroundImage =
+                        "url('sprites/doom_timers/" +
+                        (Math.max(g.timer, 0) % 10) +
+                        ".png')"
+                } else {
+                    h.digits[0].style.backgroundImage =
+                        "url('sprites/bomb_timers/" +
+                        (Math.floor(Math.max(g.timer, 0) / 10) % 10) +
+                        "0.png')"
+                    h.digits[1].style.backgroundImage =
+                        "url('sprites/bomb_timers/" +
+                        (Math.max(g.timer, 0) % 10) +
+                        ".png')"
+                }
+            }
+        }
+
+        document.getElementById("game_panel").style.display = "block"
+        document.getElementById("highscore_panel").style.display = "none"
+
+        document.getElementById("level").innerHTML =
+            "LEVEL " + format_num(game.level)
+        document.getElementById("score").innerHTML = format_num(
+            Math.round(game.score),
+        )
+        document.getElementById("level_progress").style.width =
+            32 * Math.min(game.level_progress / game.level_goal, 1) + "em"
+        switch (game.lives) {
+            case 1:
+                document.getElementById("lives").innerHTML = "❤"
+                break
+            case 2:
+                document.getElementById("lives").innerHTML = "❤❤"
+                break
+            case 3:
+                document.getElementById("lives").innerHTML = "❤❤❤"
+                break
+        }
+        document.getElementById("boost").innerHTML =
+            "x" + format_num(game.boost)
+        if (game.boost >= 13)
+            document.getElementById("boost_progress").style.gap = "0em"
+        else if (game.boost >= 7)
+            document.getElementById("boost_progress").style.gap = "0.125em"
+        else document.getElementById("boost_progress").style.gap = "0.25em"
+        if (game.boost > 1) {
+            for (let i = 5; i <= game.boost * 4; i++) {
+                cell = document.createElement("DIV")
+                cell.className = "boost_cell unfilled"
+                cell.id = "cell" + i
+                document.getElementById("boost_progress").appendChild(cell)
+            }
+        }
+        for (let i = 1; i <= game.boost_progress; i++) {
+            document.getElementById("cell" + i).className = "boost_cell filled"
         }
     }
-
-    game = {
-        tickspeed: 3,
-        status: "idle",
-        drag: [null, null],
-
-        level: 1,
-        level_goal: 2000,
-        level_progress: 0,
-
-        lives: 3,
-
-        boost: 1,
-        boost_goal: 4,
-        boost_progress: 0,
-
-        score: 0,
-        old_score: 0,
-        new_score: 0,
-        score_ticks: 0,
-        cascades: 0,
-        cascade_ticks: 0,
-        gems_destroyed: 0,
-
-        grid: new Array(8),
-        specials: [0, 0, 0, 0],
-        next_black: 1 + Math.floor(Math.random() * 105),
-        black_count: 0,
-        black_popped: 0,
-        next_bomb: 8,
-        bomb_ticks: [0, 0],
-        next_lock: 11,
-        doom_goal: 400 + Math.floor(Math.random() * 801),
-        doom_spawned: false,
-        doom_spawning: false,
-        doom_exists: false,
-        bad_count: 0,
-        bad_block: false,
-    }
-
-    for (let i = 0; i < 8; i++) {
-        game.grid[i] = new Array(8).fill(null)
-    }
-
-    document.getElementById("game_panel").style.display = "block"
-    document.getElementById("highscore_panel").style.display = "none"
-    document.getElementById("level_end").style.display = "none"
-
-    document.getElementById("level").innerHTML =
-        "LEVEL " + format_num(game.level)
-    document.getElementById("lives").innerHTML = "❤❤❤"
-    for (let i = 1; i <= game.boost_goal; i++) {
-        document.getElementById("cell" + i).className = "boost_cell unfilled"
-    }
-
-    initialize_board()
 }
+
+load_highscores()

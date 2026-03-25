@@ -1,5 +1,4 @@
 let game = {
-    tickspeed: 3,
     status: "idle",
     drag: [null, null],
 
@@ -74,7 +73,7 @@ class gem {
     color
     type
 
-    constructor(x, y, color, type) {
+    constructor(x, y, drop, color, type) {
         this.x = x
         this.y = y
         if (color !== undefined) this.color = color
@@ -123,7 +122,16 @@ class gem {
             element.style.backgroundImage =
                 "url('sprites/" + colors[this.color] + "_gem.png')"
         element.style.left = 4 * x + "em"
-        element.style.top = 4 * y + "em"
+        if (drop) {
+            element.style.top = "-4em"
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    element.style.top = "0em"
+                })
+            })
+        } else {
+            element.style.top = 4 * y + "em"
+        }
         if (this.type >= 1) {
             let overlay = document.createElement("DIV")
             overlay.className = "gem_overlay"
@@ -233,7 +241,7 @@ class gem {
                     game.status = "checking"
                     document.getElementById("gem_grid").className =
                         "status_other"
-                    window.setTimeout(match_check, 1000 / game.tickspeed)
+                    window.setTimeout(match_check, 250)
                 } else {
                     game.status = "idle"
                     document.getElementById("gem_grid").className =
@@ -267,7 +275,7 @@ class gem {
                     game.status = "checking"
                     document.getElementById("gem_grid").className =
                         "status_other"
-                    window.setTimeout(match_check, 1000 / game.tickspeed)
+                    window.setTimeout(match_check, 250)
                 } else {
                     game.status = "idle"
                     document.getElementById("gem_grid").className =
@@ -276,7 +284,7 @@ class gem {
             }
         })
 
-        document.getElementById("gem_grid").appendChild(element)
+        document.getElementById("gem_wrapper").appendChild(element)
         this.element = element
     }
 }
@@ -859,23 +867,23 @@ function match_check() {
             if (match[3] === 4) {
                 game.specials[0]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 2, match[4], 1)
+                    new gem(match[0], match[1] + 2, false, match[4], 1)
                 } else {
-                    new gem(match[0] + 1, match[1], match[4], 1)
+                    new gem(match[0] + 1, match[1], false, match[4], 1)
                 }
             } else if (match[3] === 5) {
                 game.specials[3]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 2, match[4], 4)
+                    new gem(match[0], match[1] + 2, false, match[4], 4)
                 } else {
-                    new gem(match[0] + 2, match[1], match[4], 4)
+                    new gem(match[0] + 2, match[1], false, match[4], 4)
                 }
             } else if (match[3] >= 6) {
                 game.specials[2]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 3, match[4], 3)
+                    new gem(match[0], match[1] + 3, false, match[4], 3)
                 } else {
-                    new gem(match[0] + 2, match[1], match[4], 3)
+                    new gem(match[0] + 2, match[1], false, match[4], 3)
                 }
             }
 
@@ -956,10 +964,10 @@ function match_check() {
 
             if (match.h[3] + match.v[3] >= 8) {
                 game.specials[2]++
-                new gem(match.point[0], match.point[1], match.h[4], 3)
+                new gem(match.point[0], match.point[1], false, match.h[4], 3)
             } else {
                 game.specials[1]++
-                new gem(match.point[0], match.point[1], match.h[4], 2)
+                new gem(match.point[0], match.point[1], false, match.h[4], 2)
             }
 
             let score = 0
@@ -1044,7 +1052,7 @@ function match_check() {
         }
 
         game.cascade_ticks = 0
-        window.setTimeout(cascade, 1000 / game.tickspeed)
+        window.setTimeout(cascade, 125)
     } else {
         let bomb_exploded = false
         for (const g of gem.list) {
@@ -1154,7 +1162,7 @@ function match_check() {
 
         if (bomb_exploded) {
             if (game.lives >= 1) {
-                window.setTimeout(cascade, 1000 / game.tickspeed)
+                window.setTimeout(cascade, 125)
             } else {
                 clear_grid()
                 document.getElementById("level_end").style.display = "block"
@@ -1165,7 +1173,7 @@ function match_check() {
 
                 localStorage.removeItem("jewel_simulator_save")
 
-                window.setTimeout(update_highscores, 6000 / game.tickspeed)
+                window.setTimeout(update_highscores, 2000)
             }
         } else {
             if (game.cascades === 0) {
@@ -1230,7 +1238,7 @@ function match_check() {
                     game.status = "levelup"
                     document.getElementById("gem_grid").className =
                         "status_other"
-                    window.setTimeout(level_up, 2000 / game.tickspeed)
+                    window.setTimeout(level_up, 500)
                 } else {
                     game.status = "idle"
                     document.getElementById("gem_grid").className =
@@ -1448,10 +1456,16 @@ function cascade() {
             }
             for (let i = 0; i < places.length; i++) {
                 if (i <= 1) {
-                    new gem(places[i], 0, Math.floor(Math.random() * 7), 5)
+                    new gem(
+                        places[i],
+                        0,
+                        true,
+                        Math.floor(Math.random() * 7),
+                        5,
+                    )
                     game.bad_count++
                 } else {
-                    new gem(places[i], 0)
+                    new gem(places[i], 0, true)
                 }
             }
         } else if (
@@ -1468,20 +1482,26 @@ function cascade() {
             }
             for (let i = 0; i < places.length; i++) {
                 if (i === 0) {
-                    new gem(places[i], 0, Math.floor(Math.random() * 7), 5)
+                    new gem(
+                        places[i],
+                        0,
+                        true,
+                        Math.floor(Math.random() * 7),
+                        5,
+                    )
                     game.bad_count++
                 } else {
-                    new gem(places[i], 0)
+                    new gem(places[i], 0, true)
                 }
             }
         } else {
             for (let i = 0; i < 8; i++) {
-                if (game.grid[i][0] === null) new gem(i, 0)
+                if (game.grid[i][0] === null) new gem(i, 0, true)
             }
         }
     } else {
         for (let i = 0; i < 8; i++) {
-            if (game.grid[i][0] === null) new gem(i, 0)
+            if (game.grid[i][0] === null) new gem(i, 0, true)
         }
     }
 
@@ -1493,7 +1513,7 @@ function cascade() {
     }
 
     if (empty > 0) {
-        window.setTimeout(cascade, 1000 / game.tickspeed)
+        window.setTimeout(cascade, 250)
     } else {
         if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
             const bomb_min = [
@@ -1511,17 +1531,17 @@ function cascade() {
                             1),
                 )
         }
-        window.setTimeout(match_check, 1000 / game.tickspeed)
+        window.setTimeout(match_check, 250)
     }
 }
 
 function animate_score() {
     game.score_ticks++
-    if (game.score_ticks <= 33) {
+    if (game.score_ticks <= 25) {
         game.score =
             game.old_score +
             (game.new_score - game.old_score) *
-                Math.sin((Math.PI / 2) * (game.score_ticks / 33) ** 0.5)
+                Math.sin((Math.PI / 2) * (game.score_ticks / 25) ** 0.5)
         window.setTimeout(animate_score, 20)
     }
     document.getElementById("score").innerHTML = format_num(
@@ -1589,7 +1609,7 @@ function level_up() {
         game.status = "idle"
         document.getElementById("gem_grid").className = "status_idle"
         save_game()
-    }, 6000 / game.tickspeed)
+    }, 2000)
 }
 
 for (let i = 0; i < 8; i++) {
@@ -1836,7 +1856,7 @@ function continue_game() {
         game.drag = [null, null]
 
         for (const g of save.gems) {
-            let h = new gem(g.x, g.y, g.color, g.type)
+            let h = new gem(g.x, g.y, false, g.color, g.type)
             if (g.timer !== undefined) {
                 h.timer = g.timer
                 if (h.color === 7) {

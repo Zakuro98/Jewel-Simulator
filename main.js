@@ -229,6 +229,10 @@ class gem {
             if (game.status === "idle") {
                 game.drag[0] = [this.x, this.y]
 
+                this.element.style.zIndex = 2
+                this.element.style.transition = "none"
+                this.element.style.pointerEvents = "none"
+
                 game.status = "drag"
                 document.getElementById("gem_grid").className = "status_drag"
             }
@@ -236,6 +240,17 @@ class gem {
         element.addEventListener("mouseup", () => {
             if (game.status === "drag") {
                 game.drag[1] = [this.x, this.y]
+
+                let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+                element.style.transition = ""
+                element.style.pointerEvents = ""
+                element.style.left = 4 * game.drag[0][0] + "em"
+                element.style.top = 4 * game.drag[0][1] + "em"
+                element.addEventListener("transitionend", function handler(e) {
+                    e.target.style.zIndex = ""
+                    e.target.removeEventListener("transitionend", handler)
+                })
+
                 let success = move_gem()
                 if (success) {
                     game.status = "checking"
@@ -254,6 +269,9 @@ class gem {
             if (game.status === "idle") {
                 game.drag[0] = [this.x, this.y]
 
+                this.element.style.zIndex = 2
+                this.element.style.transition = "none"
+
                 game.status = "drag"
                 document.getElementById("gem_grid").className = "status_drag"
             }
@@ -270,6 +288,16 @@ class gem {
                 let ty = Math.floor((touch.clientY - grid.top) / cellSize)
 
                 game.drag[1] = [tx, ty]
+
+                let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+                element.style.transition = ""
+                element.style.left = 4 * game.drag[0][0] + "em"
+                element.style.top = 4 * game.drag[0][1] + "em"
+                element.addEventListener("transitionend", function handler(e) {
+                    e.target.style.zIndex = ""
+                    e.target.removeEventListener("transitionend", handler)
+                })
+
                 let success = move_gem()
                 if (success) {
                     game.status = "checking"
@@ -296,8 +324,64 @@ document.body.addEventListener("mouseup", () => {
     if (game.status === "drag") {
         game.drag[1] = null
 
+        let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+        element.style.transition = ""
+        element.style.pointerEvents = ""
+        element.style.left = 4 * game.drag[0][0] + "em"
+        element.style.top = 4 * game.drag[0][1] + "em"
+        element.addEventListener("transitionend", function handler(e) {
+            e.target.style.zIndex = ""
+            e.target.removeEventListener("transitionend", handler)
+        })
+
         game.status = "idle"
         document.getElementById("gem_grid").className = "status_idle"
+    }
+})
+document.body.addEventListener("touchend", () => {
+    if (game.status === "drag") {
+        game.drag[1] = null
+
+        let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+        element.style.transition = ""
+        element.style.pointerEvents = ""
+        element.style.left = 4 * game.drag[0][0] + "em"
+        element.style.top = 4 * game.drag[0][1] + "em"
+        element.addEventListener("transitionend", function handler(e) {
+            e.target.style.zIndex = ""
+            e.target.removeEventListener("transitionend", handler)
+        })
+
+        game.status = "idle"
+        document.getElementById("gem_grid").className = "status_idle"
+    }
+})
+
+document.addEventListener("mousemove", e => {
+    if (game.status === "drag") {
+        let grid = document
+            .getElementById("gem_wrapper")
+            .getBoundingClientRect()
+        let cellSize = grid.width / 8
+        let x = e.clientX - grid.left - cellSize / 2
+        let y = e.clientY - grid.top - cellSize / 2
+        let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+        element.style.left = x + "px"
+        element.style.top = y + "px"
+    }
+})
+document.addEventListener("touchmove", e => {
+    if (game.status === "drag") {
+        let touch = e.touches[0]
+        let grid = document
+            .getElementById("gem_wrapper")
+            .getBoundingClientRect()
+        let cellSize = grid.width / 8
+        let x = touch.clientX - grid.left - cellSize / 2
+        let y = touch.clientY - grid.top - cellSize / 2
+        let element = find_gem(game.drag[0][0], game.drag[0][1]).element
+        element.style.left = x + "px"
+        element.style.top = y + "px"
     }
 })
 

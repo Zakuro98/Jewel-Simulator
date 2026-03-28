@@ -688,6 +688,9 @@ function remove_secondary(g) {
         game.secondaries--
         if (game.secondaries <= 0) {
             game.cascade_ticks = 0
+            for (const g of gem.list) {
+                if (g.marked) g.marked = false
+            }
             window.setTimeout(cascade, 125)
         }
     }, timer)
@@ -986,23 +989,29 @@ function match_check() {
             if (match[3] === 4) {
                 game.specials[0]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 2, false, match[4], 1)
+                    let g = new gem(match[0], match[1] + 2, false, match[4], 1)
+                    g.marked = true
                 } else {
-                    new gem(match[0] + 1, match[1], false, match[4], 1)
+                    let g = new gem(match[0] + 1, match[1], false, match[4], 1)
+                    g.marked = true
                 }
             } else if (match[3] === 5) {
                 game.specials[3]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 2, false, match[4], 4)
+                    let g = new gem(match[0], match[1] + 2, false, match[4], 4)
+                    g.marked = true
                 } else {
-                    new gem(match[0] + 2, match[1], false, match[4], 4)
+                    let g = new gem(match[0] + 2, match[1], false, match[4], 4)
+                    g.marked = true
                 }
             } else if (match[3] >= 6) {
                 game.specials[2]++
                 if (match[2]) {
-                    new gem(match[0], match[1] + 3, false, match[4], 3)
+                    let g = new gem(match[0], match[1] + 3, false, match[4], 3)
+                    g.marked = true
                 } else {
-                    new gem(match[0] + 2, match[1], false, match[4], 3)
+                    let g = new gem(match[0] + 2, match[1], false, match[4], 3)
+                    g.marked = true
                 }
             }
 
@@ -1085,10 +1094,24 @@ function match_check() {
 
             if (match.h[3] + match.v[3] >= 8) {
                 game.specials[2]++
-                new gem(match.point[0], match.point[1], false, match.h[4], 3)
+                let g = new gem(
+                    match.point[0],
+                    match.point[1],
+                    false,
+                    match.h[4],
+                    3,
+                )
+                g.marked = true
             } else {
                 game.specials[1]++
-                new gem(match.point[0], match.point[1], false, match.h[4], 2)
+                let g = new gem(
+                    match.point[0],
+                    match.point[1],
+                    false,
+                    match.h[4],
+                    2,
+                )
+                g.marked = true
             }
 
             let score = 0
@@ -1174,6 +1197,9 @@ function match_check() {
 
         if (game.secondaries <= 0) {
             game.cascade_ticks = 0
+            for (const g of gem.list) {
+                if (g.marked) g.marked = false
+            }
             window.setTimeout(cascade, 125)
         }
     } else {

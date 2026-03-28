@@ -22,6 +22,7 @@ let game = {
 
     grid: new Array(8),
     specials: [0, 0, 0, 0],
+    secondaries: 0,
     next_black: 1 + Math.floor(Math.random() * 105),
     black_count: 0,
     black_popped: 0,
@@ -526,7 +527,11 @@ function remove_gem(g, destruction) {
             case 1:
                 for (const g of gem.list) {
                     if (Math.abs(g.x - x) <= 1 && Math.abs(g.y - y) <= 1) {
-                        remove_gem(g)
+                        if (g.type >= 1 && g.type <= 4) {
+                            if (!g.marked) remove_secondary(g)
+                        } else {
+                            remove_gem(g)
+                        }
                     }
                 }
                 break
@@ -538,7 +543,11 @@ function remove_gem(g, destruction) {
                         } else {
                             score += 20
                         }
-                        remove_gem(g)
+                        if (g.type >= 1 && g.type <= 4) {
+                            if (!g.marked) remove_secondary(g)
+                        } else {
+                            remove_gem(g)
+                        }
                     }
                 }
                 break
@@ -550,7 +559,11 @@ function remove_gem(g, destruction) {
                         } else {
                             score += 20
                         }
-                        remove_gem(g)
+                        if (g.type >= 1 && g.type <= 4) {
+                            if (!g.marked) remove_secondary(g)
+                        } else {
+                            remove_gem(g)
+                        }
                     }
                 }
                 break
@@ -562,7 +575,11 @@ function remove_gem(g, destruction) {
                         } else {
                             score += 20
                         }
-                        remove_gem(g)
+                        if (g.type >= 1 && g.type <= 4) {
+                            if (!g.marked) remove_secondary(g)
+                        } else {
+                            remove_gem(g)
+                        }
                     }
                 }
                 break
@@ -659,6 +676,21 @@ function remove_gem(g, destruction) {
             }
         }
     }
+}
+
+function remove_secondary(g) {
+    let timer = 250
+    if (g.type >= 2) timer = 500
+    game.secondaries++
+    g.marked = true
+    window.setTimeout(() => {
+        remove_gem(g)
+        game.secondaries--
+        if (game.secondaries <= 0) {
+            game.cascade_ticks = 0
+            window.setTimeout(cascade, 125)
+        }
+    }, timer)
 }
 
 function clear_grid() {
@@ -907,6 +939,7 @@ function match_check() {
                 format_num(game.cascades) + " cascades"
 
         game.black_popped = 0
+        game.secondaries = 0
         let old_score = game.new_score > game.score
         const color = [
             "#ff192c",
@@ -937,11 +970,13 @@ function match_check() {
                     }
                 }
             }
+            const priority = [0, 1, 2, 4, 3, 0, 0, 0, 0]
             gems.sort(function (a, b) {
-                a.type - b.type
+                return priority[a.type] - priority[b.type]
             })
             for (const g of gems) {
                 if (g.type >= 1) {
+                    if (g.type <= 4) g.marked = true
                     remove_gem(g, destruction)
                 } else {
                     remove_gem(g)
@@ -1035,11 +1070,13 @@ function match_check() {
                     gems.push(find_gem(match.v[0], match.v[1] + i))
                 }
             }
+            const priority = [0, 1, 2, 4, 3, 0, 0, 0, 0]
             gems.sort(function (a, b) {
-                a.type - b.type
+                return priority[a.type] - priority[b.type]
             })
             for (const g of gems) {
                 if (g.type >= 1) {
+                    if (g.type <= 4) g.marked = true
                     remove_gem(g, destruction)
                 } else {
                     remove_gem(g)
@@ -1135,8 +1172,10 @@ function match_check() {
             }
         }
 
-        game.cascade_ticks = 0
-        window.setTimeout(cascade, 125)
+        if (game.secondaries <= 0) {
+            game.cascade_ticks = 0
+            window.setTimeout(cascade, 125)
+        }
     } else {
         let bomb_exploded = false
         for (const g of gem.list) {
@@ -1894,6 +1933,7 @@ function new_game() {
 
             grid: new Array(8),
             specials: [0, 0, 0, 0],
+            secondaries: 0,
             next_black: 1 + Math.floor(Math.random() * 105),
             black_count: 0,
             black_popped: 0,
@@ -1936,6 +1976,7 @@ function continue_game() {
     let save = JSON.parse(localStorage.getItem("jewel_simulator_save"))
     if (save !== null) {
         game = save.game
+        if (game.secondaries === undefined) game.secondaries = 0
         game.score = game.new_score
         game.drag = [null, null]
 

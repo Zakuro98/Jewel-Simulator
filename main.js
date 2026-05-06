@@ -26,7 +26,7 @@ let game = {
     next_black: 1 + Math.floor(Math.random() * 105),
     black_count: 0,
     black_popped: 0,
-    next_bomb: 8,
+    next_bomb: 7,
     bomb_ticks: [0, 0],
     next_lock: 11,
     doom_goal: 400 + Math.floor(Math.random() * 801),
@@ -1513,11 +1513,10 @@ function match_check() {
                     !game.bad_block
                 ) {
                     const lock_min = [
-                        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1,
+                        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1,
                     ]
                     const lock_max = [
-                        15, 14, 13, 12, 11, 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6,
-                        6, 5,
+                        15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4,
                     ]
                     game.next_lock =
                         lock_min[Math.min(game.level, 21) - 4] +
@@ -1588,8 +1587,8 @@ function cascade() {
         if (game.level >= 6)
             max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
         let double_chance = 0
-        if (game.level >= 13)
-            double_chance = Math.min((game.level - 12) / 20, 0.5)
+        if (game.level >= 11)
+            double_chance = Math.min((game.level - 10) / 20, 0.5)
         let double_bomb = false
         if (Math.random() < double_chance && game.bad_count < max_bad - 1)
             double_bomb = true
@@ -1666,10 +1665,10 @@ function cascade() {
     } else {
         if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
             const bomb_min = [
-                4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
+                4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
             ]
             const bomb_max = [
-                12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
+                10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
             ]
             game.next_bomb =
                 bomb_min[Math.min(game.level, 21) - 2] +
@@ -1710,12 +1709,8 @@ function level_up() {
     let min = Math.min(16, 35 - game.level)
     game.next_black = 1 + Math.floor(Math.random() * min * 3)
     game.black_count = 0
-    const bomb_min = [
-        4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1,
-    ]
-    const bomb_max = [
-        12, 11, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
-    ]
+    const bomb_min = [4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1]
+    const bomb_max = [10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3]
     game.next_bomb = Math.max(
         Math.floor(
             (bomb_min[Math.min(game.level, 21) - 2] +
@@ -1724,10 +1719,8 @@ function level_up() {
         ),
         5,
     )
-    const lock_min = [7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 2, 1, 1, 1, 1, 1]
-    const lock_max = [
-        15, 14, 13, 12, 11, 10, 9, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4,
-    ]
+    const lock_min = [7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1]
+    const lock_max = [15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4]
     game.next_lock = Math.max(
         Math.floor(
             (lock_min[Math.min(game.level, 21) - 4] +
@@ -1963,7 +1956,7 @@ function new_game() {
             next_black: 1 + Math.floor(Math.random() * 105),
             black_count: 0,
             black_popped: 0,
-            next_bomb: 8,
+            next_bomb: 7,
             bomb_ticks: [0, 0],
             next_lock: 11,
             doom_goal: 400 + Math.floor(Math.random() * 801),

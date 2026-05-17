@@ -1519,11 +1519,11 @@ function match_check() {
                         15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4,
                     ]
                     game.next_lock =
-                        lock_min[Math.min(game.level, 21) - 4] +
+                        lock_min[Math.min(game.level, 20) - 4] +
                         Math.floor(
                             Math.random() *
-                                (lock_max[Math.min(game.level, 21) - 4] -
-                                    lock_min[Math.min(game.level, 21) - 4] +
+                                (lock_max[Math.min(game.level, 20) - 4] -
+                                    lock_min[Math.min(game.level, 20) - 4] +
                                     1),
                         )
 
@@ -1671,11 +1671,11 @@ function cascade() {
                 10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
             ]
             game.next_bomb =
-                bomb_min[Math.min(game.level, 21) - 2] +
+                bomb_min[Math.min(game.level, 20) - 2] +
                 Math.floor(
                     Math.random() *
-                        (bomb_max[Math.min(game.level, 21) - 2] -
-                            bomb_min[Math.min(game.level, 21) - 2] +
+                        (bomb_max[Math.min(game.level, 20) - 2] -
+                            bomb_min[Math.min(game.level, 20) - 2] +
                             1),
                 )
         }
@@ -1713,8 +1713,8 @@ function level_up() {
     const bomb_max = [10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3]
     game.next_bomb = Math.max(
         Math.floor(
-            (bomb_min[Math.min(game.level, 21) - 2] +
-                bomb_max[Math.min(game.level, 21) - 2]) /
+            (bomb_min[Math.min(game.level, 20) - 2] +
+                bomb_max[Math.min(game.level, 20) - 2]) /
                 2,
         ),
         5,
@@ -1723,8 +1723,8 @@ function level_up() {
     const lock_max = [15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4]
     game.next_lock = Math.max(
         Math.floor(
-            (lock_min[Math.min(game.level, 21) - 4] +
-                lock_max[Math.min(game.level, 21) - 4]) /
+            (lock_min[Math.min(game.level, 20) - 4] +
+                lock_max[Math.min(game.level, 20) - 4]) /
                 2,
         ),
         5,

@@ -29,9 +29,9 @@ let game = {
     next_bomb: 7,
     bomb_ticks: [0, 0],
     next_lock: 11,
-    doom_goal: 400 + Math.floor(Math.random() * 801),
-    doom_spawned: false,
-    doom_spawning: false,
+    doom_goal: 1000,
+    doom_left: 0,
+    doom_spawn: false,
     doom_exists: false,
     bad_count: 0,
     bad_block: false,
@@ -492,6 +492,10 @@ function remove_gem(g, destruction) {
                 case 8:
                     destruction.score += 1000
                     game.doom_exists = false
+                    if (game.doom_left > 0)
+                        game.doom_goal =
+                            game.level_progress +
+                            Math.floor(game.level_goal * 0.2)
                     break
             }
         } else {
@@ -510,6 +514,10 @@ function remove_gem(g, destruction) {
                     if (color === 7) {
                         score += 1000 + timer * 100
                         game.doom_exists = false
+                        if (game.doom_left > 0)
+                            game.doom_goal =
+                                game.level_progress +
+                                Math.floor(game.level_goal * 0.2)
                     } else score += 200
                     break
                 case 6:
@@ -519,6 +527,10 @@ function remove_gem(g, destruction) {
                 case 8:
                     score += 1000
                     game.doom_exists = false
+                    if (game.doom_left > 0)
+                        game.doom_goal =
+                            game.level_progress +
+                            Math.floor(game.level_goal * 0.2)
                     break
             }
         }
@@ -1448,11 +1460,12 @@ function match_check() {
             if (game.level >= 6)
                 max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
 
-            game.doom_spawning = false
+            game.doom_spawn = false
             if (
                 game.level >= 13 &&
                 game.level_progress >= game.doom_goal &&
-                !game.doom_spawned &&
+                !game.doom_exists &&
+                game.doom_left > 0 &&
                 !game.bad_block &&
                 game.bad_count < max_bad
             ) {
@@ -1461,8 +1474,8 @@ function match_check() {
                     if (g.type === 0 && g.color < 7) plain_gems.push(g)
                 }
                 if (plain_gems.length > 0) {
-                    game.doom_spawned = true
-                    game.doom_spawning = true
+                    game.doom_left--
+                    game.doom_spawn = true
                     game.doom_exists = true
                     let g =
                         plain_gems[
@@ -1485,7 +1498,7 @@ function match_check() {
 
                 if (
                     game.next_bomb <= 0 &&
-                    !game.doom_spawning &&
+                    !game.doom_spawn &&
                     !game.bad_block
                 ) {
                     let ticks = Array.from(
@@ -1509,21 +1522,19 @@ function match_check() {
                 if (
                     game.next_lock <= 0 &&
                     game.next_bomb > 0 &&
-                    !game.doom_spawning &&
+                    !game.doom_spawn &&
                     !game.bad_block
                 ) {
-                    const lock_min = [
-                        7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1,
-                    ]
+                    const lock_min = [7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1]
                     const lock_max = [
-                        15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4,
+                        15, 13, 11, 10, 9, 8, 7, 7, 6, 6, 5, 5, 5, 4,
                     ]
                     game.next_lock =
-                        lock_min[Math.min(game.level, 20) - 4] +
+                        lock_min[Math.min(game.level, 17) - 4] +
                         Math.floor(
                             Math.random() *
-                                (lock_max[Math.min(game.level, 20) - 4] -
-                                    lock_min[Math.min(game.level, 20) - 4] +
+                                (lock_max[Math.min(game.level, 17) - 4] -
+                                    lock_min[Math.min(game.level, 17) - 4] +
                                     1),
                         )
 
@@ -1582,7 +1593,7 @@ function cascade() {
         }
     }
 
-    if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
+    if (game.next_bomb <= 0 && !game.doom_spawn && !game.bad_block) {
         let max_bad = 3
         if (game.level >= 6)
             max_bad = Math.min(Math.floor(game.level / 3) + 2, 15)
@@ -1663,19 +1674,15 @@ function cascade() {
     if (empty > 0) {
         window.setTimeout(cascade, 250)
     } else {
-        if (game.next_bomb <= 0 && !game.doom_spawning && !game.bad_block) {
-            const bomb_min = [
-                4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1,
-            ]
-            const bomb_max = [
-                10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3,
-            ]
+        if (game.next_bomb <= 0 && !game.doom_spawn && !game.bad_block) {
+            const bomb_min = [4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1]
+            const bomb_max = [10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3]
             game.next_bomb =
-                bomb_min[Math.min(game.level, 20) - 2] +
+                bomb_min[Math.min(game.level, 17) - 2] +
                 Math.floor(
                     Math.random() *
-                        (bomb_max[Math.min(game.level, 20) - 2] -
-                            bomb_min[Math.min(game.level, 20) - 2] +
+                        (bomb_max[Math.min(game.level, 17) - 2] -
+                            bomb_min[Math.min(game.level, 17) - 2] +
                             1),
                 )
         }
@@ -1709,31 +1716,40 @@ function level_up() {
     let min = Math.min(16, 35 - game.level)
     game.next_black = 1 + Math.floor(Math.random() * min * 3)
     game.black_count = 0
-    const bomb_min = [4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1]
-    const bomb_max = [10, 10, 9, 9, 8, 8, 7, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3]
+    const bomb_min = [4, 4, 4, 4, 3, 3, 3, 3, 2, 2, 2, 2, 1, 1, 1, 1]
+    const bomb_max = [10, 9, 8, 8, 7, 7, 6, 6, 6, 5, 5, 5, 4, 4, 4, 3]
     game.next_bomb = Math.max(
         Math.floor(
-            (bomb_min[Math.min(game.level, 20) - 2] +
-                bomb_max[Math.min(game.level, 20) - 2]) /
+            (bomb_min[Math.min(game.level, 17) - 2] +
+                bomb_max[Math.min(game.level, 17) - 2]) /
                 2,
         ),
         5,
     )
-    const lock_min = [7, 7, 6, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1, 1]
-    const lock_max = [15, 14, 13, 12, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 5, 5, 4]
+    const lock_min = [7, 6, 5, 5, 4, 4, 3, 3, 2, 2, 1, 1, 1, 1]
+    const lock_max = [15, 13, 11, 10, 9, 8, 7, 7, 6, 6, 5, 5, 5, 4]
     game.next_lock = Math.max(
         Math.floor(
-            (lock_min[Math.min(game.level, 20) - 4] +
-                lock_max[Math.min(game.level, 20) - 4]) /
+            (lock_min[Math.min(game.level, 17) - 4] +
+                lock_max[Math.min(game.level, 17) - 4]) /
                 2,
         ),
         5,
     )
-    game.doom_goal =
-        game.level_goal * 0.2 +
-        Math.floor(Math.random() * game.level_goal * 0.4 + 1)
-    game.doom_spawned = false
-    game.doom_spawning = false
+    if (game.level >= 20) game.doom_goal = Math.floor(game.level_goal * 0.2)
+    else if (game.level === 13)
+        game.doom_goal = Math.floor(game.level_goal * 0.5)
+    else if (game.level >= 14) {
+        let min = Math.max(1.8 - game.level * 0.1, 0.2)
+        let max = Math.max(1.2 - game.level * 0.05, 0.2)
+        game.doom_goal =
+            game.level_goal * min +
+            Math.floor(Math.random() * game.level_goal * (max - min) + 1)
+    }
+    if (game.level >= 20) game.doom_left = game.level - 18
+    else if (game.level >= 13) game.doom_left = 1
+    else game.doom_left = 0
+    game.doom_spawn = false
     game.doom_exists = false
     game.bad_count = 0
     game.bad_block = false
@@ -1960,8 +1976,8 @@ function new_game() {
             bomb_ticks: [0, 0],
             next_lock: 11,
             doom_goal: 400 + Math.floor(Math.random() * 801),
-            doom_spawned: false,
-            doom_spawning: false,
+            doom_left: 0,
+            doom_spawn: false,
             doom_exists: false,
             bad_count: 0,
             bad_block: false,
@@ -1996,6 +2012,13 @@ function continue_game() {
     if (save !== null) {
         game = save.game
         if (game.secondaries === undefined) game.secondaries = 0
+        if (game.doom_left === undefined) {
+            if (game.level >= 20) game.doom_left = game.level - 18
+            else if (game.level >= 13) game.doom_left = 1
+            else game.doom_left = 0
+        }
+        if (game.doom_spawning !== undefined)
+            game.doom_spawn = game.doom_spawning
         game.score = game.new_score
         game.drag = [null, null]
 

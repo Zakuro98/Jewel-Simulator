@@ -1746,7 +1746,9 @@ function level_up() {
             game.level_goal * min +
             Math.floor(Math.random() * game.level_goal * (max - min) + 1)
     }
-    if (game.level >= 20) game.doom_left = game.level - 18
+    if (game.level >= 26) game.doom_left = 4
+    else if (game.level >= 23) game.doom_left = 3
+    else if (game.level >= 20) game.doom_left = 2
     else if (game.level >= 13) game.doom_left = 1
     else game.doom_left = 0
     game.doom_spawn = false
@@ -2013,9 +2015,12 @@ function continue_game() {
         game = save.game
         if (game.secondaries === undefined) game.secondaries = 0
         if (game.doom_left === undefined) {
-            if (game.level >= 20) game.doom_left = game.level - 18
+            if (game.level >= 26) game.doom_left = 4
+            else if (game.level >= 23) game.doom_left = 3
+            else if (game.level >= 20) game.doom_left = 2
             else if (game.level >= 13) game.doom_left = 1
             else game.doom_left = 0
+            if (game.doom_spawned && game.doom_left > 0) game.doom_left--
         }
         if (game.doom_spawning !== undefined)
             game.doom_spawn = game.doom_spawning

@@ -393,6 +393,14 @@ for (let i = 1; i <= 4; i++) {
     document.getElementById("boost_progress").appendChild(cell)
 }
 
+function get_boost_goal(boost) {
+    if (boost < 10) {
+        return boost * 4
+    } else {
+        return 2 * boost ** 2 - 30 * boost + 144
+    }
+}
+
 function score_popup(x, y, num, color) {
     let popup = document.createElement("P")
     popup.className = "score_popup"
@@ -659,8 +667,8 @@ function remove_gem(g, destruction) {
             while (game.boost_progress >= game.boost_goal) {
                 game.boost_progress -= game.boost_goal
                 game.boost++
-                game.boost_goal = game.boost * 4
-                if (game.boost >= 13)
+                game.boost_goal = get_boost_goal(game.boost)
+                if (game.boost >= 11)
                     document.getElementById("boost_progress").style.gap = "0em"
                 else if (game.boost >= 7)
                     document.getElementById("boost_progress").style.gap =
@@ -669,10 +677,12 @@ function remove_gem(g, destruction) {
                     document.getElementById("boost_progress").style.gap =
                         "0.25em"
 
-                for (let i = 1; i <= 4; i++) {
+                let count =
+                    get_boost_goal(game.boost) - get_boost_goal(game.boost - 1)
+                for (let i = 1; i <= count; i++) {
                     cell = document.createElement("DIV")
                     cell.className = "boost_cell unfilled"
-                    cell.id = "cell" + (i + game.boost * 4 - 4)
+                    cell.id = "cell" + (i + get_boost_goal(game.boost - 1))
                     document.getElementById("boost_progress").appendChild(cell)
                 }
                 document.getElementById("boost").innerHTML =
@@ -1178,8 +1188,8 @@ function match_check() {
             while (game.boost_progress >= game.boost_goal) {
                 game.boost_progress -= game.boost_goal
                 game.boost++
-                game.boost_goal = game.boost * 4
-                if (game.boost >= 13)
+                game.boost_goal = get_boost_goal(game.boost)
+                if (game.boost >= 11)
                     document.getElementById("boost_progress").style.gap = "0em"
                 else if (game.boost >= 7)
                     document.getElementById("boost_progress").style.gap =
@@ -1188,10 +1198,12 @@ function match_check() {
                     document.getElementById("boost_progress").style.gap =
                         "0.25em"
 
-                for (let i = 1; i <= 4; i++) {
+                let count =
+                    get_boost_goal(game.boost) - get_boost_goal(game.boost - 1)
+                for (let i = 1; i <= count; i++) {
                     cell = document.createElement("DIV")
                     cell.className = "boost_cell unfilled"
-                    cell.id = "cell" + (i + game.boost * 4 - 4)
+                    cell.id = "cell" + (i + get_boost_goal(game.boost - 1))
                     document.getElementById("boost_progress").appendChild(cell)
                 }
                 document.getElementById("boost").innerHTML =
@@ -1253,17 +1265,24 @@ function match_check() {
                             for (let i = 0; i < 2; i++) {
                                 if (game.boost > 1) {
                                     game.boost--
-                                    for (let i = 1; i <= 4; i++) {
+                                    let count =
+                                        get_boost_goal(game.boost + 1) -
+                                        get_boost_goal(game.boost)
+                                    for (let i = 1; i <= count; i++) {
                                         document
                                             .getElementById(
-                                                "cell" + (i + game.boost * 4),
+                                                "cell" +
+                                                    (i +
+                                                        get_boost_goal(
+                                                            game.boost,
+                                                        )),
                                             )
                                             .remove()
                                     }
-                                    game.boost_goal = game.boost * 4
+                                    game.boost_goal = get_boost_goal(game.boost)
                                 } else break
                             }
-                            if (game.boost >= 13)
+                            if (game.boost >= 11)
                                 document.getElementById(
                                     "boost_progress",
                                 ).style.gap = "0em"
@@ -1338,25 +1357,48 @@ function match_check() {
             }
         } else {
             if (game.cascades === 0) {
-                if (game.boost_progress > 0 || game.pending_progress > 0) {
-                    game.boost_progress = 0
-                    game.pending_progress = 0
+                if (game.boost_progress > 0) {
+                    if (game.boost_goal < 32) {
+                        game.boost_progress = 0
 
-                    for (let i = 1; i <= game.boost_goal; i++) {
-                        document.getElementById("cell" + i).className =
-                            "boost_cell unfilled"
+                        for (let i = 1; i <= game.boost_goal; i++) {
+                            document.getElementById("cell" + i).className =
+                                "boost_cell unfilled"
+                        }
+                    } else {
+                        game.boost_progress = Math.max(
+                            Math.min(
+                                Math.floor(game.boost_progress / 2),
+                                game.boost_progress - 32,
+                            ),
+                            0,
+                        )
+
+                        for (
+                            let i = game.boost_progress + 1;
+                            i <= game.boost_goal;
+                            i++
+                        ) {
+                            document.getElementById("cell" + i).className =
+                                "boost_cell unfilled"
+                        }
                     }
                 } else {
                     if (game.boost > 1) {
                         game.boost--
-                        for (let i = 1; i <= 4; i++) {
+                        let count =
+                            get_boost_goal(game.boost + 1) -
+                            get_boost_goal(game.boost)
+                        for (let i = 1; i <= count; i++) {
                             document
-                                .getElementById("cell" + (i + game.boost * 4))
+                                .getElementById(
+                                    "cell" + (i + get_boost_goal(game.boost)),
+                                )
                                 .remove()
                         }
                     }
-                    game.boost_goal = game.boost * 4
-                    if (game.boost >= 13)
+                    game.boost_goal = get_boost_goal(game.boost)
+                    if (game.boost >= 11)
                         document.getElementById("boost_progress").style.gap =
                             "0em"
                     else if (game.boost >= 7)
@@ -1941,7 +1983,7 @@ function new_game() {
     if (confirm) {
         if (game.boost >= 2) {
             for (let i = 5; i <= game.boost_goal; i++) {
-                document.getElementById("cell" + (i + game.boost * 4)).remove()
+                document.getElementById("cell" + i).remove()
             }
         }
 
@@ -2082,7 +2124,7 @@ function continue_game() {
             document.getElementById("boost_progress").style.gap = "0.125em"
         else document.getElementById("boost_progress").style.gap = "0.25em"
         if (game.boost > 1) {
-            for (let i = 5; i <= game.boost * 4; i++) {
+            for (let i = 5; i <= get_boost_goal(game.boost); i++) {
                 cell = document.createElement("DIV")
                 cell.className = "boost_cell unfilled"
                 cell.id = "cell" + i
